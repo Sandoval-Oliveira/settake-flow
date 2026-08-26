@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ContatosRouteImport } from './routes/contatos'
 import { Route as LeadsRouteImport } from './routes/leads'
 import { Route as NutricaoRouteImport } from './routes/nutricao'
 import { Route as VendasRouteImport } from './routes/vendas'
@@ -17,6 +18,11 @@ import { Route as VendasRouteImport } from './routes/vendas'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContatosRoute = ContatosRouteImport.update({
+  id: '/contatos',
+  path: '/contatos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LeadsRoute = LeadsRouteImport.update({
@@ -37,12 +43,14 @@ const VendasRoute = VendasRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/contatos': typeof ContatosRoute
   '/leads': typeof LeadsRoute
   '/nutricao': typeof NutricaoRoute
   '/vendas': typeof VendasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/contatos': typeof ContatosRoute
   '/leads': typeof LeadsRoute
   '/nutricao': typeof NutricaoRoute
   '/vendas': typeof VendasRoute
@@ -50,20 +58,22 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/contatos': typeof ContatosRoute
   '/leads': typeof LeadsRoute
   '/nutricao': typeof NutricaoRoute
   '/vendas': typeof VendasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/leads' | '/nutricao' | '/vendas'
+  fullPaths: '/' | '/contatos' | '/leads' | '/nutricao' | '/vendas'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/leads' | '/nutricao' | '/vendas'
-  id: '__root__' | '/' | '/leads' | '/nutricao' | '/vendas'
+  to: '/' | '/contatos' | '/leads' | '/nutricao' | '/vendas'
+  id: '__root__' | '/' | '/contatos' | '/leads' | '/nutricao' | '/vendas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ContatosRoute: typeof ContatosRoute
   LeadsRoute: typeof LeadsRoute
   NutricaoRoute: typeof NutricaoRoute
   VendasRoute: typeof VendasRoute
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contatos': {
+      id: '/contatos'
+      path: '/contatos'
+      fullPath: '/contatos'
+      preLoaderRoute: typeof ContatosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/leads': {
@@ -104,6 +121,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ContatosRoute: ContatosRoute,
   LeadsRoute: LeadsRoute,
   NutricaoRoute: NutricaoRoute,
   VendasRoute: VendasRoute,
