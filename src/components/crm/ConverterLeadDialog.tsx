@@ -57,7 +57,7 @@ export function ConverterLeadDialog({
   function submit() {
     converter.mutate(
       {
-        lead,
+        lead: lead!,
         pessoa: {
           nome: nome.trim(),
           tipo,
