@@ -121,7 +121,7 @@ export function SoftBadge({
   color,
 }: {
   children: ReactNode;
-  color?: string | null;
+  color?: string | null | undefined;
 }) {
   return (
     <span
