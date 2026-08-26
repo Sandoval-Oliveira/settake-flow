@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LeadsRouteImport } from './routes/leads'
+import { Route as NutricaoRouteImport } from './routes/nutricao'
 import { Route as VendasRouteImport } from './routes/vendas'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +24,11 @@ const LeadsRoute = LeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NutricaoRoute = NutricaoRouteImport.update({
+  id: '/nutricao',
+  path: '/nutricao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VendasRoute = VendasRouteImport.update({
   id: '/vendas',
   path: '/vendas',
@@ -32,30 +38,34 @@ const VendasRoute = VendasRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/leads': typeof LeadsRoute
+  '/nutricao': typeof NutricaoRoute
   '/vendas': typeof VendasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/leads': typeof LeadsRoute
+  '/nutricao': typeof NutricaoRoute
   '/vendas': typeof VendasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/leads': typeof LeadsRoute
+  '/nutricao': typeof NutricaoRoute
   '/vendas': typeof VendasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/leads' | '/vendas'
+  fullPaths: '/' | '/leads' | '/nutricao' | '/vendas'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/leads' | '/vendas'
-  id: '__root__' | '/' | '/leads' | '/vendas'
+  to: '/' | '/leads' | '/nutricao' | '/vendas'
+  id: '__root__' | '/' | '/leads' | '/nutricao' | '/vendas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LeadsRoute: typeof LeadsRoute
+  NutricaoRoute: typeof NutricaoRoute
   VendasRoute: typeof VendasRoute
 }
 
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LeadsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/nutricao': {
+      id: '/nutricao'
+      path: '/nutricao'
+      fullPath: '/nutricao'
+      preLoaderRoute: typeof NutricaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vendas': {
       id: '/vendas'
       path: '/vendas'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LeadsRoute: LeadsRoute,
+  NutricaoRoute: NutricaoRoute,
   VendasRoute: VendasRoute,
 }
 export const routeTree = rootRouteImport
