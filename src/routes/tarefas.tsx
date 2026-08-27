@@ -205,6 +205,8 @@ function TarefasPage() {
           </ul>
         )}
       </Panel>
+      )}
+
 
       <TarefaDialog open={dialogOpen} onOpenChange={setDialogOpen} tarefa={editing} />
     </>
