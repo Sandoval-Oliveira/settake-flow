@@ -23,10 +23,7 @@ export function RowActions({
 }: Props) {
   return (
     <div
-      className={cn(
-        floating &&
-          "card-actions absolute right-2 top-2 opacity-0 transition-opacity duration-150",
-      )}
+      className={cn(floating && "card-actions opacity-0 transition-opacity duration-150")}
       onClick={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
     >
