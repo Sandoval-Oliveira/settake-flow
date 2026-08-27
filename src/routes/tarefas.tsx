@@ -1,15 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { CalendarDays, List, Plus } from "lucide-react";
 import { PageHeader } from "@/components/crm/PageHeader";
 import { TarefaDialog } from "@/components/crm/TarefaDialog";
+import { TarefasCalendario } from "@/components/crm/TarefasCalendario";
+import { ViewFade, ViewToggle } from "@/components/crm/ViewToggle";
 import { EmptyState, Panel, PriorityBadge } from "@/components/crm/primitives";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useDeleteRecord, useSaveRecord, useTarefas } from "@/lib/crm-api";
 import { PRIORIDADES, type Tarefa } from "@/lib/crm-types";
 import { formatDateTime, toDate } from "@/lib/format";
+
 
 export const Route = createFileRoute("/tarefas")({
   head: () => ({
