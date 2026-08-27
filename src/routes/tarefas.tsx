@@ -90,7 +90,16 @@ function TarefasPage() {
         subtitle={`${filtrada.length} tarefa(s) em "${filtro}"`}
         actions={
           <>
+            <ViewToggle
+              value={view}
+              onChange={setView}
+              options={[
+                { value: "lista", label: "Lista", icon: List },
+                { value: "calendario", label: "Calendário", icon: CalendarDays },
+              ]}
+            />
             <div className="flex flex-wrap rounded-lg border border-border bg-card p-1">
+
               {(["Pendentes", "Hoje", "Atrasadas", "Concluídas", "Todas"] as Filtro[]).map((f) => (
                 <button
                   key={f}
