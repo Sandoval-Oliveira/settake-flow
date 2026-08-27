@@ -8,6 +8,7 @@ import {
   Contact,
   CheckSquare,
   ChevronLeft,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
