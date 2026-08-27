@@ -10,12 +10,14 @@ import { InteracoesPanel } from "@/components/crm/InteracoesPanel";
 import { TarefaDialog } from "@/components/crm/TarefaDialog";
 import { CrmTable, type CrmColumn } from "@/components/crm/CrmTable";
 import { ViewFade, ViewToggle } from "@/components/crm/ViewToggle";
+import { RowActions } from "@/components/crm/RowActions";
+import { ConfirmDeleteDialog } from "@/components/crm/ConfirmDeleteDialog";
 import { OriginBadge, SoftBadge, WhatsAppButton } from "@/components/crm/primitives";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useLeads } from "@/lib/crm-api";
-import { useFunilLeads, useMoverCard } from "@/lib/crm-funis";
+import { useExcluirLead, useFunilLeads, useMoverCard } from "@/lib/crm-funis";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import type { Lead, PipelineLead } from "@/lib/crm-types";
 import { formatDate, whatsappLink } from "@/lib/format";
@@ -83,6 +85,13 @@ function LeadsPage() {
   const [detalhe, setDetalhe] = useState<PipelineLead | null>(null);
   const [converter, setConverter] = useState<Lead | null>(null);
   const [tarefaOpen, setTarefaOpen] = useState(false);
+  const [excluir, setExcluir] = useState<PipelineLead | null>(null);
+  const excluirLead = useExcluirLead();
+
+  const abrirEdicao = (l: PipelineLead) => {
+    setEditing(leadsRaw.find((r) => String(r.id) === String(l.id)) ?? null);
+    setDialogOpen(true);
+  };
 
   const termo = busca.trim().toLowerCase();
   const items = (data?.cards ?? []).filter(
@@ -148,8 +157,18 @@ function LeadsPage() {
         defaultHidden: true,
         cell: (l) => formatDate(l.atualizado_em),
       },
+      {
+        id: "acoes",
+        header: "",
+        required: true,
+        size: 60,
+        cell: (l) => (
+          <RowActions onEdit={() => abrirEdicao(l)} onDelete={() => setExcluir(l)} />
+        ),
+      },
     ],
-    [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [leadsRaw],
   );
 
   return (
@@ -206,7 +225,14 @@ function LeadsPage() {
                 values: { etapa_id: columnId, atualizado_em: new Date().toISOString() },
               })
             }
-            renderCard={(l) => <LeadCard lead={l} onClick={() => setDetalhe(l)} />}
+            renderCard={(l) => (
+              <LeadCard
+                lead={l}
+                onClick={() => setDetalhe(l)}
+                onEdit={() => abrirEdicao(l)}
+                onDelete={() => setExcluir(l)}
+              />
+            )}
             emptyMessage="Nenhum lead nesta etapa"
           />
         </ViewFade>
@@ -223,6 +249,23 @@ function LeadsPage() {
           />
         </ViewFade>
       )}
+
+      <ConfirmDeleteDialog
+        open={Boolean(excluir)}
+        onOpenChange={(v) => !v && setExcluir(null)}
+        title="Excluir lead?"
+        description={`Esta ação não pode ser desfeita. O lead "${excluir?.nome ?? ""}" será removido permanentemente, junto com suas interações e tarefas.`}
+        loading={excluirLead.isPending}
+        onConfirm={() => {
+          if (!excluir) return;
+          excluirLead.mutate(String(excluir.id), {
+            onSuccess: () => {
+              setExcluir(null);
+              setDetalhe(null);
+            },
+          });
+        }}
+      />
 
       <LeadDialog open={dialogOpen} onOpenChange={setDialogOpen} lead={editing} etapas={etapas} />
       <ConverterLeadDialog
