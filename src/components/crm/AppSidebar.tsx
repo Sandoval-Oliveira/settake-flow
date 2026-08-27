@@ -10,49 +10,27 @@ import {
   ChevronLeft,
   type LucideIcon,
 } from "lucide-react";
-import { usePipelineLeads, usePipelineVendas, useTarefasPendentesView } from "@/lib/crm-api";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import { formatMoney } from "@/lib/format";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-type Item = { to: string; label: string; icon: LucideIcon; badge?: string; danger?: boolean };
+type Item = { to: string; label: string; icon: LucideIcon };
+
+const items: Item[] = [
+  { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/leads", label: "Leads", icon: Users },
+  { to: "/vendas", label: "Vendas", icon: Briefcase },
+  { to: "/nutricao", label: "Nutrição", icon: Sprout },
+  { to: "/contatos", label: "Contatos", icon: Contact },
+  { to: "/tarefas", label: "Tarefas", icon: CheckSquare },
+];
 
 export function AppSidebar() {
-  const { data: leads = [] } = usePipelineLeads();
-  const { data: vendas = [] } = usePipelineVendas();
-  const { data: tarefas = [] } = useTarefasPendentesView();
   const [collapsed, setCollapsed] = useLocalStorage("crm-sidebar-collapsed", false);
 
   useEffect(() => {
     document.documentElement.style.setProperty("--sidebar-w", collapsed ? "60px" : "240px");
   }, [collapsed]);
-
-  const leadsAtivos = leads.filter((l) => !l.convertido).length;
-  const pipeline = vendas
-    .filter((o) => !o.resultado)
-    .reduce((sum, o) => sum + Number(o.valor ?? 0), 0);
-  const atrasadas = tarefas.filter((t) => t.atrasada).length;
-
-  const items: Item[] = [
-    { to: "/", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/leads", label: "Leads", icon: Users, badge: leadsAtivos ? String(leadsAtivos) : "" },
-    {
-      to: "/vendas",
-      label: "Vendas",
-      icon: Briefcase,
-      badge: pipeline ? formatMoney(pipeline) : "",
-    },
-    { to: "/nutricao", label: "Nutrição", icon: Sprout },
-    { to: "/contatos", label: "Contatos", icon: Contact },
-    {
-      to: "/tarefas",
-      label: "Tarefas",
-      icon: CheckSquare,
-      badge: atrasadas ? String(atrasadas) : "",
-      danger: true,
-    },
-  ];
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -78,7 +56,7 @@ export function AppSidebar() {
         </div>
 
         <nav className={cn("flex flex-1 flex-col gap-1", collapsed ? "px-2" : "px-3")}>
-          {items.map(({ to, label, icon: Icon, badge, danger }) => {
+          {items.map(({ to, label, icon: Icon }) => {
             const link = (
               <Link
                 key={to}
@@ -92,28 +70,13 @@ export function AppSidebar() {
               >
                 <Icon className="size-[18px] shrink-0" />
                 {!collapsed ? <span className="flex-1 truncate">{label}</span> : null}
-                {!collapsed && badge ? (
-                  <span
-                    className={cn(
-                      "rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                      danger
-                        ? "bg-danger/20 text-danger"
-                        : "bg-secondary text-muted-foreground group-data-[status=active]:bg-brand-foreground/15 group-data-[status=active]:text-brand-foreground",
-                    )}
-                  >
-                    {badge}
-                  </span>
-                ) : null}
               </Link>
             );
             if (!collapsed) return link;
             return (
               <Tooltip key={to}>
                 <TooltipTrigger asChild>{link}</TooltipTrigger>
-                <TooltipContent side="right">
-                  {label}
-                  {badge ? ` · ${badge}` : ""}
-                </TooltipContent>
+                <TooltipContent side="right">{label}</TooltipContent>
               </Tooltip>
             );
           })}

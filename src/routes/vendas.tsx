@@ -9,11 +9,13 @@ import { TarefaDialog } from "@/components/crm/TarefaDialog";
 import { InteracoesPanel } from "@/components/crm/InteracoesPanel";
 import { CrmTable, type CrmColumn } from "@/components/crm/CrmTable";
 import { ViewFade, ViewToggle } from "@/components/crm/ViewToggle";
+import { RowActions } from "@/components/crm/RowActions";
+import { ConfirmDeleteDialog } from "@/components/crm/ConfirmDeleteDialog";
 import { OriginBadge, SoftBadge, WhatsAppButton } from "@/components/crm/primitives";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useOportunidades } from "@/lib/crm-api";
-import { useFunilVendas, useMoverCard } from "@/lib/crm-funis";
+import { useExcluirOportunidade, useFunilVendas, useMoverCard } from "@/lib/crm-funis";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import type { Oportunidade, PipelineVenda } from "@/lib/crm-types";
 import { formatDate, formatMoney, whatsappLink } from "@/lib/format";
@@ -34,7 +36,17 @@ export const Route = createFileRoute("/vendas")({
   component: VendasPage,
 });
 
-function VendaCard({ venda, onClick }: { venda: PipelineVenda; onClick: () => void }) {
+function VendaCard({
+  venda,
+  onClick,
+  onEdit,
+  onDelete,
+}: {
+  venda: PipelineVenda;
+  onClick: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   return (
     <article
       onClick={onClick}
@@ -42,7 +54,10 @@ function VendaCard({ venda, onClick }: { venda: PipelineVenda; onClick: () => vo
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-sm font-semibold text-foreground">{venda.nome}</h3>
-        <WhatsAppButton href={whatsappLink(venda.pessoa_whatsapp)} />
+        <div className="flex shrink-0 items-center gap-1">
+          <WhatsAppButton href={whatsappLink(venda.pessoa_whatsapp)} />
+          <RowActions floating onEdit={onEdit} onDelete={onDelete} />
+        </div>
       </div>
       <p className="mt-0.5 text-xs text-muted-foreground">{venda.pessoa_nome ?? "Sem cliente"}</p>
       <p className="mt-2 text-sm font-bold text-brand">{formatMoney(venda.valor)}</p>
@@ -73,6 +88,13 @@ function VendasPage() {
   const [editing, setEditing] = useState<Oportunidade | null>(null);
   const [detalhe, setDetalhe] = useState<PipelineVenda | null>(null);
   const [tarefaOpen, setTarefaOpen] = useState(false);
+  const [excluir, setExcluir] = useState<PipelineVenda | null>(null);
+  const excluirOportunidade = useExcluirOportunidade();
+
+  const abrirEdicao = (o: PipelineVenda) => {
+    setEditing(oportunidades.find((r) => String(r.id) === String(o.id)) ?? null);
+    setDialogOpen(true);
+  };
 
   const total = pipeline
     .filter((o) => !o.resultado)
@@ -142,8 +164,18 @@ function VendasPage() {
         defaultHidden: true,
         cell: (o) => formatDate(o.criado_em),
       },
+      {
+        id: "acoes",
+        header: "",
+        required: true,
+        size: 60,
+        cell: (o) => (
+          <RowActions onEdit={() => abrirEdicao(o)} onDelete={() => setExcluir(o)} />
+        ),
+      },
     ],
-    [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [oportunidades],
   );
 
   function moverCard(id: string, columnId: string) {
@@ -203,7 +235,14 @@ function VendasPage() {
             getId={(o) => String(o.id)}
             getColumnId={(o) => (o.etapa_id ? String(o.etapa_id) : null)}
             onMove={moverCard}
-            renderCard={(o) => <VendaCard venda={o} onClick={() => setDetalhe(o)} />}
+            renderCard={(o) => (
+              <VendaCard
+                venda={o}
+                onClick={() => setDetalhe(o)}
+                onEdit={() => abrirEdicao(o)}
+                onDelete={() => setExcluir(o)}
+              />
+            )}
             emptyMessage="Nenhuma oportunidade nesta etapa"
           />
         </ViewFade>
@@ -221,6 +260,23 @@ function VendasPage() {
         </ViewFade>
       )}
 
+
+      <ConfirmDeleteDialog
+        open={Boolean(excluir)}
+        onOpenChange={(v) => !v && setExcluir(null)}
+        title="Excluir oportunidade?"
+        description={`Esta ação não pode ser desfeita. A oportunidade "${excluir?.nome ?? ""}" será removida permanentemente, junto com suas interações e tarefas.`}
+        loading={excluirOportunidade.isPending}
+        onConfirm={() => {
+          if (!excluir) return;
+          excluirOportunidade.mutate(String(excluir.id), {
+            onSuccess: () => {
+              setExcluir(null);
+              setDetalhe(null);
+            },
+          });
+        }}
+      />
 
       <OportunidadeDialog
         open={dialogOpen}

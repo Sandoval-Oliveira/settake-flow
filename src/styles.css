@@ -151,6 +151,12 @@
   }
 }
 
+.kanban-card:hover .card-actions,
+.kanban-card:focus-within .card-actions {
+  opacity: 1;
+}
+
+
 @utility scroll-slim {
   scrollbar-width: thin;
   scrollbar-color: var(--surface-2) transparent;
