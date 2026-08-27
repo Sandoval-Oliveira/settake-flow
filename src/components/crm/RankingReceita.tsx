@@ -104,7 +104,7 @@ export function RankingReceita({ onSelect }: { onSelect?: (pessoaId: string) => 
                     className={onSelect ? "cursor-pointer" : undefined}
                   >
                     <td className="font-semibold text-brand">{i + 1}</td>
-                    <td className="font-medium">{r.nome}</td>
+                    <td className="whitespace-nowrap font-medium">{r.nome}</td>
                     <td className="text-muted-foreground">{r.segmento ?? "—"}</td>
                     <td>{r.transacoes}</td>
                     <td className="font-semibold text-brand">{formatMoney(r.total)}</td>
