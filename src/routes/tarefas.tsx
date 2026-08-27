@@ -127,7 +127,19 @@ function TarefasPage() {
         }
       />
 
+      {view === "calendario" ? (
+        <ViewFade>
+          <TarefasCalendario
+            tarefas={filtrada}
+            onSelect={(t) => {
+              setEditing(t);
+              setDialogOpen(true);
+            }}
+          />
+        </ViewFade>
+      ) : (
       <Panel title="Lista de tarefas">
+
         {isLoading ? (
           <div className="space-y-3">
             {[0, 1, 2, 3].map((i) => (
