@@ -35,7 +35,17 @@ export const Route = createFileRoute("/leads")({
   component: LeadsPage,
 });
 
-function LeadCard({ lead, onClick }: { lead: PipelineLead; onClick: () => void }) {
+function LeadCard({
+  lead,
+  onClick,
+  onEdit,
+  onDelete,
+}: {
+  lead: PipelineLead;
+  onClick: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   return (
     <article
       onClick={onClick}
@@ -43,7 +53,10 @@ function LeadCard({ lead, onClick }: { lead: PipelineLead; onClick: () => void }
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-sm font-semibold text-foreground">{lead.nome}</h3>
-        <WhatsAppButton href={whatsappLink(lead.whatsapp)} />
+        <div className="flex shrink-0 items-center gap-1">
+          <WhatsAppButton href={whatsappLink(lead.whatsapp)} />
+          <RowActions floating onEdit={onEdit} onDelete={onDelete} />
+        </div>
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
         <OriginBadge origem={lead.origem} />
