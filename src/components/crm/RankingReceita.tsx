@@ -84,15 +84,16 @@ export function RankingReceita({ onSelect }: { onSelect?: (pessoaId: string) => 
           ) : ranking.length === 0 ? (
             <EmptyState icon="💰" message="Nenhuma receita no período" />
           ) : (
-            <table className="crm-table w-full">
+            <table className="crm-table w-full" style={{ tableLayout: "auto" }}>
               <thead>
                 <tr>
                   <th style={{ width: 44 }}>#</th>
                   <th>Nome</th>
-                  <th style={{ width: 130 }}>Segmento</th>
-                  <th style={{ width: 70 }}>Nº</th>
+                  <th style={{ width: 120 }}>Segmento</th>
+                  <th style={{ width: 60 }}>Nº</th>
                   <th style={{ width: 130 }}>Total</th>
-                  <th style={{ width: 120 }}>Participação</th>
+                  <th style={{ width: 110 }}>Participação</th>
+
                 </tr>
               </thead>
               <tbody>
