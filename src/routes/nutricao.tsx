@@ -8,10 +8,12 @@ import { TarefaDialog } from "@/components/crm/TarefaDialog";
 import { InteracoesPanel } from "@/components/crm/InteracoesPanel";
 import { CrmTable, type CrmColumn } from "@/components/crm/CrmTable";
 import { ViewFade, ViewToggle } from "@/components/crm/ViewToggle";
+import { RowActions } from "@/components/crm/RowActions";
+import { ConfirmDeleteDialog } from "@/components/crm/ConfirmDeleteDialog";
 import { OriginBadge, SoftBadge, WhatsAppButton } from "@/components/crm/primitives";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useFunilNutricao, useMoverCard } from "@/lib/crm-funis";
+import { useFunilNutricao, useMoverCard, useRemoverDaNutricao } from "@/lib/crm-funis";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import type { PipelineNutricao } from "@/lib/crm-types";
 import { formatDate, formatDayMonth, formatMoney, whatsappLink } from "@/lib/format";
@@ -33,7 +35,17 @@ export const Route = createFileRoute("/nutricao")({
   component: NutricaoPage,
 });
 
-function NutricaoCard({ item, onClick }: { item: PipelineNutricao; onClick: () => void }) {
+function NutricaoCard({
+  item,
+  onClick,
+  onEdit,
+  onDelete,
+}: {
+  item: PipelineNutricao;
+  onClick: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   const frio = (item.dias_ultima_interacao ?? 0) > 30;
   return (
     <article
@@ -42,7 +54,10 @@ function NutricaoCard({ item, onClick }: { item: PipelineNutricao; onClick: () =
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="text-sm font-semibold text-foreground">{item.nome}</h3>
-        <WhatsAppButton href={whatsappLink(item.whatsapp)} />
+        <div className="flex shrink-0 items-center gap-1">
+          <WhatsAppButton href={whatsappLink(item.whatsapp)} />
+          <RowActions floating deleteLabel="Remover do funil" onEdit={onEdit} onDelete={onDelete} />
+        </div>
       </div>
       <p className="mt-1 text-sm font-bold text-brand">{formatMoney(item.ltv_total)}</p>
       <div className="mt-2 flex flex-wrap gap-1.5">
@@ -70,6 +85,8 @@ function NutricaoPage() {
   const [view, setView] = useLocalStorage<"kanban" | "lista">("crm-nutricao-view", "kanban");
   const [detalhe, setDetalhe] = useState<PipelineNutricao | null>(null);
   const [tarefaOpen, setTarefaOpen] = useState(false);
+  const [remover, setRemover] = useState<PipelineNutricao | null>(null);
+  const removerDaNutricao = useRemoverDaNutricao();
 
   const ltvTotal = pipeline.reduce((s, p) => s + Number(p.ltv_total ?? 0), 0);
 
@@ -123,6 +140,19 @@ function NutricaoPage() {
         size: 140,
         cell: (p) => <span className="font-semibold text-brand">{formatMoney(p.ltv_total)}</span>,
       },
+      {
+        id: "acoes",
+        header: "",
+        required: true,
+        size: 60,
+        cell: (p) => (
+          <RowActions
+            deleteLabel="Remover do funil"
+            onEdit={() => setDetalhe(p)}
+            onDelete={() => setRemover(p)}
+          />
+        ),
+      },
     ],
     [],
   );
@@ -157,7 +187,14 @@ function NutricaoPage() {
             onMove={(id, columnId) =>
               mover.mutate({ table: "pessoas", id, values: { etapa_nutricao_id: columnId } })
             }
-            renderCard={(p) => <NutricaoCard item={p} onClick={() => setDetalhe(p)} />}
+            renderCard={(p) => (
+              <NutricaoCard
+                item={p}
+                onClick={() => setDetalhe(p)}
+                onEdit={() => setDetalhe(p)}
+                onDelete={() => setRemover(p)}
+              />
+            )}
             emptyMessage="Nenhum cliente nesta etapa"
           />
         </ViewFade>
@@ -175,6 +212,24 @@ function NutricaoPage() {
         </ViewFade>
       )}
 
+
+      <ConfirmDeleteDialog
+        open={Boolean(remover)}
+        onOpenChange={(v) => !v && setRemover(null)}
+        title="Remover do funil de nutrição?"
+        description={`O contato "${remover?.nome ?? ""}" será removido do funil de nutrição, mas seus dados e histórico financeiro serão mantidos na aba Contatos.`}
+        confirmLabel="Remover"
+        loading={removerDaNutricao.isPending}
+        onConfirm={() => {
+          if (!remover) return;
+          removerDaNutricao.mutate(String(remover.id), {
+            onSuccess: () => {
+              setRemover(null);
+              setDetalhe(null);
+            },
+          });
+        }}
+      />
 
       <TarefaDialog
         open={tarefaOpen}
