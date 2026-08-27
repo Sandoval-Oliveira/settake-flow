@@ -27,7 +27,7 @@ export function ViewToggle<T extends string>({
               : "text-muted-foreground hover:text-foreground",
           )}
         >
-          <Icon className="size-3.5" />
+          {Icon ? <Icon className="size-3.5" /> : null}
           {label}
         </button>
       ))}
