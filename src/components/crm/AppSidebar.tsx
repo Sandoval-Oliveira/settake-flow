@@ -82,6 +82,31 @@ export function AppSidebar() {
           })}
         </nav>
 
+        <div className={cn("border-t border-border py-2", collapsed ? "px-2" : "px-3")}>
+          {(() => {
+            const link = (
+              <Link
+                to="/configuracoes"
+                aria-label="Configurações"
+                className={cn(
+                  "group flex items-center gap-3 rounded-lg py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground data-[status=active]:brand-gradient data-[status=active]:font-semibold data-[status=active]:text-brand-foreground",
+                  collapsed ? "justify-center px-2" : "px-3",
+                )}
+              >
+                <Settings className="size-[18px] shrink-0" />
+                {!collapsed ? <span className="flex-1 truncate">Configurações</span> : null}
+              </Link>
+            );
+            if (!collapsed) return link;
+            return (
+              <Tooltip>
+                <TooltipTrigger asChild>{link}</TooltipTrigger>
+                <TooltipContent side="right">Configurações</TooltipContent>
+              </Tooltip>
+            );
+          })()}
+        </div>
+
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}
