@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Option<T extends string> = { value: T; label: string; icon: LucideIcon };
+type Option<T extends string> = { value: T; label: string; icon?: LucideIcon };
 
 export function ViewToggle<T extends string>({
   value,
