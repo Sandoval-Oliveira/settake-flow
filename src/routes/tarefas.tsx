@@ -1,15 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { CalendarDays, List, Plus } from "lucide-react";
 import { PageHeader } from "@/components/crm/PageHeader";
 import { TarefaDialog } from "@/components/crm/TarefaDialog";
+import { TarefasCalendario } from "@/components/crm/TarefasCalendario";
+import { ViewFade, ViewToggle } from "@/components/crm/ViewToggle";
 import { EmptyState, Panel, PriorityBadge } from "@/components/crm/primitives";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useDeleteRecord, useSaveRecord, useTarefas } from "@/lib/crm-api";
 import { PRIORIDADES, type Tarefa } from "@/lib/crm-types";
 import { formatDateTime, toDate } from "@/lib/format";
+
 
 export const Route = createFileRoute("/tarefas")({
   head: () => ({
@@ -46,7 +50,9 @@ function TarefasPage() {
   const save = useSaveRecord("Tarefa atualizada");
   const remove = useDeleteRecord("Tarefa excluída");
 
+  const [view, setView] = useLocalStorage<"lista" | "calendario">("crm-tarefas-view", "lista");
   const [filtro, setFiltro] = useState<Filtro>("Pendentes");
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Tarefa | null>(null);
 
@@ -84,7 +90,16 @@ function TarefasPage() {
         subtitle={`${filtrada.length} tarefa(s) em "${filtro}"`}
         actions={
           <>
+            <ViewToggle
+              value={view}
+              onChange={setView}
+              options={[
+                { value: "lista", label: "Lista", icon: List },
+                { value: "calendario", label: "Calendário", icon: CalendarDays },
+              ]}
+            />
             <div className="flex flex-wrap rounded-lg border border-border bg-card p-1">
+
               {(["Pendentes", "Hoje", "Atrasadas", "Concluídas", "Todas"] as Filtro[]).map((f) => (
                 <button
                   key={f}
@@ -112,7 +127,19 @@ function TarefasPage() {
         }
       />
 
+      {view === "calendario" ? (
+        <ViewFade>
+          <TarefasCalendario
+            tarefas={filtrada}
+            onSelect={(t) => {
+              setEditing(t);
+              setDialogOpen(true);
+            }}
+          />
+        </ViewFade>
+      ) : (
       <Panel title="Lista de tarefas">
+
         {isLoading ? (
           <div className="space-y-3">
             {[0, 1, 2, 3].map((i) => (
@@ -178,6 +205,8 @@ function TarefasPage() {
           </ul>
         )}
       </Panel>
+      )}
+
 
       <TarefaDialog open={dialogOpen} onOpenChange={setDialogOpen} tarefa={editing} />
     </>

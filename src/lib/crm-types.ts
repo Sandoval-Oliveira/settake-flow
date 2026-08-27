@@ -153,6 +153,10 @@ export type PipelineNutricao = {
   area_atuacao: AreaAtuacao | null;
   origem: Origem | null;
   whatsapp: string | null;
+  email?: string | null;
+  aniversario?: string | null;
+  total_transacoes?: number | null;
+
   etapa_nutricao_id: string | null;
   etapa_nome?: string | null;
   etapa_cor?: string | null;

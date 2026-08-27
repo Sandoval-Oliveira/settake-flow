@@ -1,18 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Plus } from "lucide-react";
+import { useMemo, useState } from "react";
+import { LayoutGrid, List, Plus } from "lucide-react";
 import { PageHeader } from "@/components/crm/PageHeader";
 import { EtapasEmpty } from "@/components/crm/EtapasEmpty";
 import { KanbanBoard, type KanbanColumn } from "@/components/crm/Kanban";
 import { OportunidadeDialog } from "@/components/crm/OportunidadeDialog";
 import { TarefaDialog } from "@/components/crm/TarefaDialog";
 import { InteracoesPanel } from "@/components/crm/InteracoesPanel";
+import { CrmTable, type CrmColumn } from "@/components/crm/CrmTable";
+import { ViewFade, ViewToggle } from "@/components/crm/ViewToggle";
 import { OriginBadge, SoftBadge, WhatsAppButton } from "@/components/crm/primitives";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useEtapas, useOportunidades, usePipelineVendas, useSaveRecord } from "@/lib/crm-api";
+import { useOportunidades } from "@/lib/crm-api";
+import { useFunilVendas, useMoverCard } from "@/lib/crm-funis";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 import type { Oportunidade, PipelineVenda } from "@/lib/crm-types";
 import { formatDate, formatMoney, whatsappLink } from "@/lib/format";
+
 
 export const Route = createFileRoute("/vendas")({
   head: () => ({
@@ -57,11 +62,13 @@ function VendaCard({ venda, onClick }: { venda: PipelineVenda; onClick: () => vo
 }
 
 function VendasPage() {
-  const { data: etapas = [], isLoading: loadingEtapas } = useEtapas("vendas");
-  const { data: pipeline = [], isLoading } = usePipelineVendas();
+  const { data, isLoading } = useFunilVendas();
+  const etapas = data?.etapas ?? [];
+  const pipeline = data?.cards ?? [];
   const { data: oportunidades = [] } = useOportunidades();
-  const save = useSaveRecord("Oportunidade movida");
+  const mover = useMoverCard("vendas", "Oportunidade movida");
 
+  const [view, setView] = useLocalStorage<"kanban" | "lista">("crm-vendas-view", "kanban");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Oportunidade | null>(null);
   const [detalhe, setDetalhe] = useState<PipelineVenda | null>(null);
@@ -86,51 +93,134 @@ function VendasPage() {
   const full = (id: string | null | undefined) =>
     oportunidades.find((o) => String(o.id) === String(id)) ?? null;
 
+  const tableColumns = useMemo<CrmColumn<PipelineVenda>[]>(
+    () => [
+      {
+        id: "nome",
+        header: "Nome",
+        required: true,
+        size: 200,
+        cell: (o) => <span className="font-medium">{o.nome}</span>,
+      },
+      {
+        id: "etapa",
+        header: "Etapa",
+        required: true,
+        size: 160,
+        cell: (o) => <SoftBadge color={o.etapa_cor}>{o.etapa_nome ?? "—"}</SoftBadge>,
+      },
+      { id: "contato", header: "Contato", size: 180, cell: (o) => o.pessoa_nome ?? "—" },
+      {
+        id: "servico",
+        header: "Serviço",
+        size: 180,
+        cell: (o) => o.servico_nome ?? o.item_nome ?? "—",
+      },
+      {
+        id: "valor",
+        header: "Valor",
+        size: 130,
+        cell: (o) => <span className="font-semibold text-brand">{formatMoney(o.valor)}</span>,
+      },
+      { id: "resultado", header: "Resultado", size: 120, cell: (o) => o.resultado ?? "Aberto" },
+      {
+        id: "dias",
+        header: "Dias em aberto",
+        size: 130,
+        cell: (o) => (o.dias_na_etapa != null ? `${o.dias_na_etapa}d` : "—"),
+      },
+      {
+        id: "data_fechamento",
+        header: "Data fechamento",
+        size: 140,
+        cell: (o) => formatDate(o.data_fechamento),
+      },
+      {
+        id: "criado_em",
+        header: "Criado em",
+        size: 130,
+        defaultHidden: true,
+        cell: (o) => formatDate(o.criado_em),
+      },
+    ],
+    [],
+  );
+
+  function moverCard(id: string, columnId: string) {
+    const etapa = etapas.find((e) => String(e.id) === columnId);
+    const values: Record<string, unknown> = {
+      etapa_id: columnId,
+      atualizado_em: new Date().toISOString(),
+    };
+    if (etapa?.tipo_final === "ganho") {
+      values['resultado'] = "Ganho";
+      values['data_fechamento'] = new Date().toISOString().slice(0, 10);
+    } else if (etapa?.tipo_final === "perdido") {
+      values['resultado'] = "Perdido";
+      values['data_fechamento'] = new Date().toISOString().slice(0, 10);
+    } else {
+      values['resultado'] = null;
+    }
+    mover.mutate({ table: "crm_oportunidades", id, values });
+  }
+
   return (
     <>
       <PageHeader
         title="Vendas"
         subtitle={`${formatMoney(total)} em pipeline aberto`}
         actions={
-          <Button
-            onClick={() => {
-              setEditing(null);
-              setDialogOpen(true);
-            }}
-            className="brand-gradient font-semibold text-brand-foreground"
-          >
-            <Plus className="size-4" /> Nova oportunidade
-          </Button>
+          <>
+            <ViewToggle
+              value={view}
+              onChange={setView}
+              options={[
+                { value: "lista", label: "Lista", icon: List },
+                { value: "kanban", label: "Kanban", icon: LayoutGrid },
+              ]}
+            />
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setDialogOpen(true);
+              }}
+              className="brand-gradient font-semibold text-brand-foreground"
+            >
+              <Plus className="size-4" /> Nova oportunidade
+            </Button>
+          </>
         }
       />
 
-      {!loadingEtapas && etapas.length === 0 ? (
+      {!isLoading && etapas.length === 0 ? (
         <EtapasEmpty funil="vendas" />
+      ) : view === "kanban" ? (
+        <ViewFade>
+          <KanbanBoard
+            columns={columns}
+            items={pipeline}
+            loading={isLoading}
+            getId={(o) => String(o.id)}
+            getColumnId={(o) => (o.etapa_id ? String(o.etapa_id) : null)}
+            onMove={moverCard}
+            renderCard={(o) => <VendaCard venda={o} onClick={() => setDetalhe(o)} />}
+            emptyMessage="Nenhuma oportunidade nesta etapa"
+          />
+        </ViewFade>
       ) : (
-        <KanbanBoard
-          columns={columns}
-          items={pipeline}
-          loading={isLoading || loadingEtapas}
-          getId={(o) => String(o.id)}
-          getColumnId={(o) => (o.etapa_id ? String(o.etapa_id) : null)}
-          onMove={(id, columnId) => {
-            const etapa = etapas.find((e) => String(e.id) === columnId);
-            const values: Record<string, unknown> = { etapa_id: columnId };
-            if (etapa?.tipo_final === "ganho") {
-              values['resultado'] = "Ganho";
-              values['data_fechamento'] = new Date().toISOString().slice(0, 10);
-            } else if (etapa?.tipo_final === "perdido") {
-              values['resultado'] = "Perdido";
-              values['data_fechamento'] = new Date().toISOString().slice(0, 10);
-            } else {
-              values['resultado'] = null;
-            }
-            save.mutate({ table: "crm_oportunidades", id, values });
-          }}
-          renderCard={(o) => <VendaCard venda={o} onClick={() => setDetalhe(o)} />}
-          emptyMessage="Nenhuma oportunidade nesta etapa"
-        />
+        <ViewFade>
+          <CrmTable
+            storageKey="crm-vendas"
+            columns={tableColumns}
+            rows={pipeline}
+            loading={isLoading}
+            getRowId={(o) => String(o.id)}
+            onRowClick={(o) => setDetalhe(o)}
+            emptyMessage="Nenhuma oportunidade encontrada"
+          />
+        </ViewFade>
       )}
+
 
       <OportunidadeDialog
         open={dialogOpen}
