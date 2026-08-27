@@ -340,3 +340,36 @@
   border: 1px solid #2a2d3e;
   color: #f0f2f8;
 }
+
+/* overrides do react-big-calendar (o CSS do pacote é injetado depois) */
+.crm-calendar .rbc-off-range-bg {
+  background: #0a0c12 !important;
+}
+
+.crm-calendar .rbc-day-bg,
+.crm-calendar .rbc-month-row,
+.crm-calendar .rbc-time-content,
+.crm-calendar .rbc-timeslot-group {
+  background: #0f1117 !important;
+}
+
+.crm-calendar .rbc-day-bg.rbc-today {
+  background: #1a1d27 !important;
+}
+
+.crm-calendar .rbc-toolbar button {
+  background: #1a1d27 !important;
+  border-color: #2a2d3e !important;
+  color: #f0f2f8 !important;
+}
+
+.crm-calendar .rbc-toolbar button.rbc-active {
+  background: linear-gradient(135deg, #e8b800 0%, #f5820a 100%) !important;
+  color: #0f1117 !important;
+  border-color: transparent !important;
+}
+
+.crm-calendar .rbc-header {
+  background: #1a1d27 !important;
+  color: #8b8fa8 !important;
+}
