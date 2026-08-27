@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Field, SelectField, enumOptions } from "./primitives";
+import { useOpcoesLista } from "@/lib/crm-config";
 import { AREAS_ATUACAO, SEGMENTOS, TIPOS_PESSOA, type Etapa, type Lead } from "@/lib/crm-types";
 import { useConverterLead, useEtapas, useServicos } from "@/lib/crm-api";
 import { maskWhatsapp } from "@/lib/format";
@@ -27,6 +28,8 @@ export function ConverterLeadDialog({
   const { data: servicos = [] } = useServicos();
   const converter = useConverterLead();
 
+  const { data: optSegmentos } = useOpcoesLista("crm_config_segmentos");
+  const { data: optAreas } = useOpcoesLista("crm_config_areas_atuacao");
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState<string | null>("Cliente");
   const [whatsapp, setWhatsapp] = useState("");
@@ -108,11 +111,11 @@ export function ConverterLeadDialog({
             <SelectField
               value={segmento}
               onChange={setSegmento}
-              options={enumOptions(SEGMENTOS)}
+              options={optSegmentos ?? enumOptions(SEGMENTOS)}
             />
           </Field>
           <Field label="Área de atuação">
-            <SelectField value={area} onChange={setArea} options={enumOptions(AREAS_ATUACAO)} />
+            <SelectField value={area} onChange={setArea} options={optAreas ?? enumOptions(AREAS_ATUACAO)} />
           </Field>
         </div>
 

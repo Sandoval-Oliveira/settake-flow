@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, SelectField, enumOptions } from "./primitives";
+import { useOpcoesLista } from "@/lib/crm-config";
 import {
   AREAS_ATUACAO,
   ORIGENS,
@@ -63,6 +64,9 @@ export function ContatoDialog({
   pessoa?: Pessoa | null;
   etapasNutricao: Etapa[];
 }) {
+  const { data: optSegmentos } = useOpcoesLista("crm_config_segmentos");
+  const { data: optOrigens } = useOpcoesLista("crm_config_origens");
+  const { data: optAreas } = useOpcoesLista("crm_config_areas_atuacao");
   const [form, setForm] = useState<Form>(EMPTY);
   const save = useSaveRecord(pessoa ? "Contato atualizado" : "Contato criado");
 
@@ -152,21 +156,21 @@ export function ContatoDialog({
             <SelectField
               value={form.segmento}
               onChange={(v) => set("segmento", v)}
-              options={enumOptions(SEGMENTOS)}
+              options={optSegmentos ?? enumOptions(SEGMENTOS)}
             />
           </Field>
           <Field label="Área de atuação">
             <SelectField
               value={form.area_atuacao}
               onChange={(v) => set("area_atuacao", v)}
-              options={enumOptions(AREAS_ATUACAO)}
+              options={optAreas ?? enumOptions(AREAS_ATUACAO)}
             />
           </Field>
           <Field label="Origem">
             <SelectField
               value={form.origem}
               onChange={(v) => set("origem", v)}
-              options={enumOptions(ORIGENS)}
+              options={optOrigens ?? enumOptions(ORIGENS)}
             />
           </Field>
           {indicacao ? (
