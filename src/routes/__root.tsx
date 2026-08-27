@@ -115,7 +115,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <div className="min-h-screen bg-background">
         <AppSidebar />
-        <main className="pl-[72px] lg:pl-[240px]">
+        <main className="crm-main">
           {!isSupabaseConfigured ? (
             <div className="border-b border-warning/30 bg-warning/10 px-6 py-2.5 text-xs text-warning">
               Banco de dados não conectado. Conecte o projeto Supabase do ERP em Configurações →

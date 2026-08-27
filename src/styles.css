@@ -155,3 +155,188 @@
   scrollbar-width: thin;
   scrollbar-color: var(--surface-2) transparent;
 }
+
+/* ---------------------------- layout / sidebar ---------------------------- */
+:root {
+  --sidebar-w: 240px;
+}
+
+.crm-main {
+  padding-left: var(--sidebar-w);
+  transition: padding-left 200ms ease-in-out;
+}
+
+.crm-view-fade {
+  animation: crm-fade-in 200ms ease-out;
+}
+
+@keyframes crm-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --------------------------------- tabela --------------------------------- */
+.crm-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 100%;
+  table-layout: fixed;
+}
+
+.crm-table thead tr {
+  background: #1a1d27;
+}
+
+.crm-table th {
+  position: relative;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8b8fa8;
+  border-bottom: 1px solid #2a2d3e;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.crm-table td {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #f0f2f8;
+  border-bottom: 1px solid #1a1d27;
+  overflow: hidden;
+}
+
+.crm-table tbody tr {
+  background: transparent;
+  transition: background-color 120ms ease;
+}
+
+.crm-table tbody tr:hover {
+  background: #1a1d27;
+}
+
+.crm-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 5px;
+  cursor: col-resize;
+  user-select: none;
+  touch-action: none;
+  background: transparent;
+}
+
+.crm-resizer:hover,
+.crm-resizer.is-resizing {
+  background: linear-gradient(135deg, #e8b800 0%, #f5820a 100%);
+}
+
+/* ------------------------------- calendário ------------------------------- */
+.rbc-calendar {
+  background: transparent;
+  color: #f0f2f8;
+  min-height: 640px;
+}
+
+.rbc-header {
+  background: #1a1d27;
+  border-color: #2a2d3e !important;
+  padding: 8px;
+  font-size: 12px;
+  color: #8b8fa8;
+  font-weight: 500;
+}
+
+.rbc-month-view,
+.rbc-time-view,
+.rbc-agenda-view table.rbc-agenda-table {
+  border-color: #2a2d3e !important;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.rbc-day-bg,
+.rbc-month-row,
+.rbc-time-content,
+.rbc-time-header-content,
+.rbc-timeslot-group,
+.rbc-day-slot {
+  background: #0f1117;
+  border-color: #2a2d3e !important;
+}
+
+.rbc-date-cell {
+  padding: 6px 8px;
+  font-size: 12px;
+  color: #8b8fa8;
+}
+
+.rbc-day-bg.rbc-today {
+  background: #1a1d27;
+  box-shadow: inset 0 0 0 1px #e8b800;
+}
+
+.rbc-off-range-bg {
+  background: #0a0c12;
+}
+
+.rbc-toolbar {
+  margin-bottom: 16px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rbc-toolbar .rbc-toolbar-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f0f2f8;
+}
+
+.rbc-toolbar button {
+  background: #1a1d27;
+  border: 1px solid #2a2d3e;
+  color: #f0f2f8;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.rbc-toolbar button:hover,
+.rbc-toolbar button:focus {
+  background: #23273a;
+  color: #f0f2f8;
+}
+
+.rbc-toolbar button.rbc-active,
+.rbc-toolbar button.rbc-active:hover {
+  background: linear-gradient(135deg, #e8b800 0%, #f5820a 100%);
+  color: #0f1117;
+  border-color: transparent;
+}
+
+.rbc-show-more {
+  color: #e8b800;
+  font-size: 11px;
+  background: transparent;
+}
+
+.rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
+  border-color: #2a2d3e !important;
+  font-size: 13px;
+}
+
+.rbc-overlay {
+  background: #1a1d27;
+  border: 1px solid #2a2d3e;
+  color: #f0f2f8;
+}

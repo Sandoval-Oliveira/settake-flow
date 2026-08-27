@@ -1,16 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { LayoutGrid, List } from "lucide-react";
 import { PageHeader } from "@/components/crm/PageHeader";
 import { EtapasEmpty } from "@/components/crm/EtapasEmpty";
 import { KanbanBoard, type KanbanColumn } from "@/components/crm/Kanban";
 import { TarefaDialog } from "@/components/crm/TarefaDialog";
 import { InteracoesPanel } from "@/components/crm/InteracoesPanel";
+import { CrmTable, type CrmColumn } from "@/components/crm/CrmTable";
+import { ViewFade, ViewToggle } from "@/components/crm/ViewToggle";
 import { OriginBadge, SoftBadge, WhatsAppButton } from "@/components/crm/primitives";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useEtapas, usePipelineNutricao, useSaveRecord } from "@/lib/crm-api";
+import { useFunilNutricao, useMoverCard } from "@/lib/crm-funis";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 import type { PipelineNutricao } from "@/lib/crm-types";
-import { formatDate, formatMoney, whatsappLink } from "@/lib/format";
+import { formatDate, formatDayMonth, formatMoney, whatsappLink } from "@/lib/format";
+
 
 export const Route = createFileRoute("/nutricao")({
   head: () => ({
@@ -57,10 +62,12 @@ function NutricaoCard({ item, onClick }: { item: PipelineNutricao; onClick: () =
 }
 
 function NutricaoPage() {
-  const { data: etapas = [], isLoading: loadingEtapas } = useEtapas("nutricao");
-  const { data: pipeline = [], isLoading } = usePipelineNutricao();
-  const save = useSaveRecord("Cliente movido");
+  const { data, isLoading } = useFunilNutricao();
+  const etapas = data?.etapas ?? [];
+  const pipeline = data?.cards ?? [];
+  const mover = useMoverCard("nutricao", "Cliente movido");
 
+  const [view, setView] = useLocalStorage<"kanban" | "lista">("crm-nutricao-view", "kanban");
   const [detalhe, setDetalhe] = useState<PipelineNutricao | null>(null);
   const [tarefaOpen, setTarefaOpen] = useState(false);
 
@@ -78,29 +85,96 @@ function NutricaoPage() {
     };
   });
 
+  const tableColumns = useMemo<CrmColumn<PipelineNutricao>[]>(
+    () => [
+      {
+        id: "nome",
+        header: "Nome",
+        required: true,
+        size: 200,
+        cell: (p) => <span className="font-medium">{p.nome}</span>,
+      },
+      {
+        id: "etapa",
+        header: "Etapa nutrição",
+        required: true,
+        size: 170,
+        cell: (p) => <SoftBadge color={p.etapa_cor}>{p.etapa_nome ?? "—"}</SoftBadge>,
+      },
+      { id: "segmento", header: "Segmento", size: 140, cell: (p) => p.segmento ?? "—" },
+      { id: "origem", header: "Origem", size: 160, cell: (p) => p.origem ?? "—" },
+      { id: "whatsapp", header: "WhatsApp", size: 150, cell: (p) => p.whatsapp ?? "—" },
+      { id: "email", header: "Email", size: 200, defaultHidden: true, cell: (p) => p.email ?? "—" },
+      {
+        id: "area_atuacao",
+        header: "Área de atuação",
+        size: 170,
+        cell: (p) => p.area_atuacao ?? "—",
+      },
+      {
+        id: "aniversario",
+        header: "Aniversário",
+        size: 120,
+        cell: (p) => (p.aniversario ? formatDayMonth(p.aniversario) : "—"),
+      },
+      {
+        id: "ltv",
+        header: "LTV (R$)",
+        size: 140,
+        cell: (p) => <span className="font-semibold text-brand">{formatMoney(p.ltv_total)}</span>,
+      },
+    ],
+    [],
+  );
+
   return (
     <>
       <PageHeader
         title="Nutrição"
         subtitle={`${pipeline.length} cliente(s) · LTV total ${formatMoney(ltvTotal)}`}
+        actions={
+          <ViewToggle
+            value={view}
+            onChange={setView}
+            options={[
+              { value: "lista", label: "Lista", icon: List },
+              { value: "kanban", label: "Kanban", icon: LayoutGrid },
+            ]}
+          />
+        }
       />
 
-      {!loadingEtapas && etapas.length === 0 ? (
+      {!isLoading && etapas.length === 0 ? (
         <EtapasEmpty funil="nutricao" />
+      ) : view === "kanban" ? (
+        <ViewFade>
+          <KanbanBoard
+            columns={columns}
+            items={pipeline}
+            loading={isLoading}
+            getId={(p) => String(p.id)}
+            getColumnId={(p) => (p.etapa_nutricao_id ? String(p.etapa_nutricao_id) : null)}
+            onMove={(id, columnId) =>
+              mover.mutate({ table: "pessoas", id, values: { etapa_nutricao_id: columnId } })
+            }
+            renderCard={(p) => <NutricaoCard item={p} onClick={() => setDetalhe(p)} />}
+            emptyMessage="Nenhum cliente nesta etapa"
+          />
+        </ViewFade>
       ) : (
-        <KanbanBoard
-          columns={columns}
-          items={pipeline}
-          loading={isLoading || loadingEtapas}
-          getId={(p) => String(p.id)}
-          getColumnId={(p) => (p.etapa_nutricao_id ? String(p.etapa_nutricao_id) : null)}
-          onMove={(id, columnId) =>
-            save.mutate({ table: "pessoas", id, values: { etapa_nutricao_id: columnId } })
-          }
-          renderCard={(p) => <NutricaoCard item={p} onClick={() => setDetalhe(p)} />}
-          emptyMessage="Nenhum cliente nesta etapa"
-        />
+        <ViewFade>
+          <CrmTable
+            storageKey="crm-nutricao"
+            columns={tableColumns}
+            rows={pipeline}
+            loading={isLoading}
+            getRowId={(p) => String(p.id)}
+            onRowClick={(p) => setDetalhe(p)}
+            emptyMessage="Nenhum cliente encontrado"
+          />
+        </ViewFade>
       )}
+
 
       <TarefaDialog
         open={tarefaOpen}

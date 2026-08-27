@@ -1,19 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { useMemo, useState } from "react";
+import { LayoutGrid, List, Plus, Search } from "lucide-react";
 import { PageHeader } from "@/components/crm/PageHeader";
 import { ContatoDialog } from "@/components/crm/ContatoDialog";
 import { OportunidadeDialog } from "@/components/crm/OportunidadeDialog";
 import { TarefaDialog } from "@/components/crm/TarefaDialog";
 import { InteracoesPanel } from "@/components/crm/InteracoesPanel";
-import { EmptyState, OriginBadge, SoftBadge, WhatsAppButton } from "@/components/crm/primitives";
+import { CrmTable, type CrmColumn } from "@/components/crm/CrmTable";
+import { ViewFade, ViewToggle } from "@/components/crm/ViewToggle";
+import { RankingReceita } from "@/components/crm/RankingReceita";
+import {
+  EmptyState,
+  OriginBadge,
+  SelectField,
+  SoftBadge,
+  WhatsAppButton,
+} from "@/components/crm/primitives";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useEtapas, useLtv, useOportunidades, usePessoas } from "@/lib/crm-api";
-import type { Pessoa } from "@/lib/crm-types";
+import { useContatosLista } from "@/lib/crm-funis";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { AREAS_ATUACAO, ORIGENS, SEGMENTOS, type Pessoa } from "@/lib/crm-types";
 import { formatDate, formatDayMonth, formatMoney, initials, whatsappLink } from "@/lib/format";
+
 
 export const Route = createFileRoute("/contatos")({
   head: () => ({

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { useMemo, useState } from "react";
+import { LayoutGrid, List, Plus, Search } from "lucide-react";
 import { PageHeader } from "@/components/crm/PageHeader";
 import { EtapasEmpty } from "@/components/crm/EtapasEmpty";
 import { KanbanBoard, type KanbanColumn } from "@/components/crm/Kanban";
@@ -8,11 +8,15 @@ import { LeadDialog } from "@/components/crm/LeadDialog";
 import { ConverterLeadDialog } from "@/components/crm/ConverterLeadDialog";
 import { InteracoesPanel } from "@/components/crm/InteracoesPanel";
 import { TarefaDialog } from "@/components/crm/TarefaDialog";
+import { CrmTable, type CrmColumn } from "@/components/crm/CrmTable";
+import { ViewFade, ViewToggle } from "@/components/crm/ViewToggle";
 import { OriginBadge, SoftBadge, WhatsAppButton } from "@/components/crm/primitives";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useEtapas, useLeads, usePipelineLeads, useSaveRecord } from "@/lib/crm-api";
+import { useLeads } from "@/lib/crm-api";
+import { useFunilLeads, useMoverCard } from "@/lib/crm-funis";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 import type { Lead, PipelineLead } from "@/lib/crm-types";
 import { formatDate, whatsappLink } from "@/lib/format";
 
@@ -54,11 +58,12 @@ function LeadCard({ lead, onClick }: { lead: PipelineLead; onClick: () => void }
 }
 
 function LeadsPage() {
-  const { data: etapas = [], isLoading: loadingEtapas } = useEtapas("leads");
-  const { data: pipeline = [], isLoading } = usePipelineLeads();
+  const { data, isLoading } = useFunilLeads();
+  const etapas = data?.etapas ?? [];
   const { data: leadsRaw = [] } = useLeads();
-  const save = useSaveRecord("Lead movido");
+  const mover = useMoverCard("leads", "Lead movido");
 
+  const [view, setView] = useLocalStorage<"kanban" | "lista">("crm-leads-view", "kanban");
   const [busca, setBusca] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Lead | null>(null);
@@ -67,13 +72,12 @@ function LeadsPage() {
   const [tarefaOpen, setTarefaOpen] = useState(false);
 
   const termo = busca.trim().toLowerCase();
-  const items = pipeline.filter(
+  const items = (data?.cards ?? []).filter(
     (l) =>
-      !l.convertido &&
-      (!termo ||
-        (l.nome ?? "").toLowerCase().includes(termo) ||
-        (l.whatsapp ?? "").includes(termo) ||
-        (l.email ?? "").toLowerCase().includes(termo)),
+      !termo ||
+      (l.nome ?? "").toLowerCase().includes(termo) ||
+      (l.whatsapp ?? "").includes(termo) ||
+      (l.email ?? "").toLowerCase().includes(termo),
   );
 
   const columns: KanbanColumn[] = etapas.map((e) => ({
@@ -83,8 +87,57 @@ function LeadsPage() {
     subtitle: undefined,
   }));
 
-  const leadCompleto = (id: string | null | undefined) =>
-    leadsRaw.find((l) => String(l.id) === String(id)) ?? null;
+  const tableColumns = useMemo<CrmColumn<PipelineLead>[]>(
+    () => [
+      {
+        id: "nome",
+        header: "Nome",
+        required: true,
+        size: 200,
+        cell: (l) => <span className="font-medium">{l.nome}</span>,
+      },
+      {
+        id: "etapa",
+        header: "Etapa",
+        required: true,
+        size: 150,
+        cell: (l) => <SoftBadge color={l.etapa_cor}>{l.etapa_nome ?? "—"}</SoftBadge>,
+      },
+      { id: "segmento", header: "Segmento", size: 140, cell: (l) => l.segmento ?? "—" },
+      { id: "origem", header: "Origem", size: 160, cell: (l) => l.origem ?? "—" },
+      { id: "whatsapp", header: "WhatsApp", size: 150, cell: (l) => l.whatsapp ?? "—" },
+      { id: "email", header: "Email", size: 200, cell: (l) => l.email ?? "—" },
+      {
+        id: "instagram",
+        header: "Instagram",
+        size: 150,
+        defaultHidden: true,
+        cell: (l) => l.instagram ?? "—",
+      },
+      {
+        id: "quem_indicou",
+        header: "Quem indicou",
+        size: 160,
+        defaultHidden: true,
+        cell: (l) => l.quem_indicou ?? "—",
+      },
+      {
+        id: "dias_no_funil",
+        header: "Dias no funil",
+        size: 120,
+        cell: (l) => (l.dias_no_funil != null ? `${l.dias_no_funil}d` : "—"),
+      },
+      { id: "criado_em", header: "Criado em", size: 130, cell: (l) => formatDate(l.criado_em) },
+      {
+        id: "atualizado_em",
+        header: "Atualizado em",
+        size: 130,
+        defaultHidden: true,
+        cell: (l) => formatDate(l.atualizado_em),
+      },
+    ],
+    [],
+  );
 
   return (
     <>
@@ -102,6 +155,14 @@ function LeadsPage() {
                 className="w-56 pl-9"
               />
             </div>
+            <ViewToggle
+              value={view}
+              onChange={setView}
+              options={[
+                { value: "lista", label: "Lista", icon: List },
+                { value: "kanban", label: "Kanban", icon: LayoutGrid },
+              ]}
+            />
             <Button
               onClick={() => {
                 setEditing(null);
@@ -115,29 +176,42 @@ function LeadsPage() {
         }
       />
 
-      {!loadingEtapas && etapas.length === 0 ? (
+      {!isLoading && etapas.length === 0 ? (
         <EtapasEmpty funil="leads" />
+      ) : view === "kanban" ? (
+        <ViewFade>
+          <KanbanBoard
+            columns={columns}
+            items={items}
+            loading={isLoading}
+            getId={(l) => String(l.id)}
+            getColumnId={(l) => (l.etapa_id ? String(l.etapa_id) : null)}
+            onMove={(id, columnId) =>
+              mover.mutate({
+                table: "crm_leads",
+                id,
+                values: { etapa_id: columnId, atualizado_em: new Date().toISOString() },
+              })
+            }
+            renderCard={(l) => <LeadCard lead={l} onClick={() => setDetalhe(l)} />}
+            emptyMessage="Nenhum lead nesta etapa"
+          />
+        </ViewFade>
       ) : (
-        <KanbanBoard
-          columns={columns}
-          items={items}
-          loading={isLoading || loadingEtapas}
-          getId={(l) => String(l.id)}
-          getColumnId={(l) => (l.etapa_id ? String(l.etapa_id) : null)}
-          onMove={(id, columnId) =>
-            save.mutate({ table: "crm_leads", id, values: { etapa_id: columnId } })
-          }
-          renderCard={(l) => <LeadCard lead={l} onClick={() => setDetalhe(l)} />}
-          emptyMessage="Nenhum lead nesta etapa"
-        />
+        <ViewFade>
+          <CrmTable
+            storageKey="crm-leads"
+            columns={tableColumns}
+            rows={items}
+            loading={isLoading}
+            getRowId={(l) => String(l.id)}
+            onRowClick={(l) => setDetalhe(l)}
+            emptyMessage="Nenhum lead encontrado"
+          />
+        </ViewFade>
       )}
 
-      <LeadDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        lead={editing}
-        etapas={etapas}
-      />
+      <LeadDialog open={dialogOpen} onOpenChange={setDialogOpen} lead={editing} etapas={etapas} />
       <ConverterLeadDialog
         open={Boolean(converter)}
         onOpenChange={(v) => !v && setConverter(null)}
@@ -199,7 +273,7 @@ function LeadsPage() {
                   size="sm"
                   variant="secondary"
                   onClick={() => {
-                    setEditing(leadCompleto(detalhe.id));
+                    setEditing(leadsRaw.find((l) => String(l.id) === String(detalhe.id)) ?? null);
                     setDialogOpen(true);
                   }}
                 >
@@ -212,7 +286,7 @@ function LeadsPage() {
                   size="sm"
                   className="brand-gradient font-semibold text-brand-foreground"
                   onClick={() => {
-                    const full = leadCompleto(detalhe.id);
+                    const full = leadsRaw.find((l) => String(l.id) === String(detalhe.id));
                     if (full) setConverter(full);
                   }}
                 >
