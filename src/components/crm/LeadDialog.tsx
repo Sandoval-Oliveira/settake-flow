@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, SelectField, enumOptions } from "./primitives";
+import { useOpcoesLista } from "@/lib/crm-config";
 import { ORIGENS, SEGMENTOS, type Etapa, type Lead } from "@/lib/crm-types";
 import { useSaveRecord } from "@/lib/crm-api";
 import { maskWhatsapp, normalizeInstagram } from "@/lib/format";
@@ -49,6 +50,8 @@ export function LeadDialog({
   lead?: Lead | null;
   etapas: Etapa[];
 }) {
+  const { data: optSegmentos } = useOpcoesLista("crm_config_segmentos");
+  const { data: optOrigens } = useOpcoesLista("crm_config_origens");
   const [form, setForm] = useState<Form>(EMPTY);
   const save = useSaveRecord(lead ? "Lead atualizado" : "Lead criado");
 
@@ -124,14 +127,14 @@ export function LeadDialog({
             <SelectField
               value={form.segmento}
               onChange={(v) => set("segmento", v)}
-              options={enumOptions(SEGMENTOS)}
+              options={optSegmentos ?? enumOptions(SEGMENTOS)}
             />
           </Field>
           <Field label="Origem">
             <SelectField
               value={form.origem}
               onChange={(v) => set("origem", v)}
-              options={enumOptions(ORIGENS)}
+              options={optOrigens ?? enumOptions(ORIGENS)}
             />
           </Field>
           {indicacao ? (

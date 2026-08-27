@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, SelectField, enumOptions } from "./primitives";
+import { useOpcoesLista } from "@/lib/crm-config";
 import { ORIGENS, type Etapa, type Oportunidade } from "@/lib/crm-types";
 import { usePessoas, useSaveRecord, useServicos } from "@/lib/crm-api";
 
@@ -47,6 +48,7 @@ export function OportunidadeDialog({
   etapas: Etapa[];
   pessoaId?: string | null;
 }) {
+  const { data: optOrigens } = useOpcoesLista("crm_config_origens");
   const [form, setForm] = useState<Form>(EMPTY);
   const { data: pessoas = [] } = usePessoas();
   const { data: servicos = [] } = useServicos();
@@ -139,7 +141,7 @@ export function OportunidadeDialog({
             <SelectField
               value={form.origem}
               onChange={(v) => set("origem", v)}
-              options={enumOptions(ORIGENS)}
+              options={optOrigens ?? enumOptions(ORIGENS)}
             />
           </Field>
           <Field label="Etapa">
