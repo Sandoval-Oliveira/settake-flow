@@ -50,7 +50,9 @@ function TarefasPage() {
   const save = useSaveRecord("Tarefa atualizada");
   const remove = useDeleteRecord("Tarefa excluída");
 
+  const [view, setView] = useLocalStorage<"lista" | "calendario">("crm-tarefas-view", "lista");
   const [filtro, setFiltro] = useState<Filtro>("Pendentes");
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Tarefa | null>(null);
 
