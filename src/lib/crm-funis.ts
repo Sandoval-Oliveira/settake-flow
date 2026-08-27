@@ -209,6 +209,82 @@ export function useMoverCard(funil: Funil, successMessage = "Card movido") {
   });
 }
 
+/* ------------------------------- exclusões -------------------------------- */
+
+function invalidarFunil(qc: ReturnType<typeof useQueryClient>, funil: Funil) {
+  void qc.invalidateQueries({ queryKey: FUNIL_KEYS[funil] });
+  void qc.invalidateQueries({ queryKey: ["pipeline_leads"] });
+  void qc.invalidateQueries({ queryKey: ["pipeline_vendas"] });
+  void qc.invalidateQueries({ queryKey: ["pipeline_nutricao"] });
+  void qc.invalidateQueries({ queryKey: ["valor_pipeline"] });
+  void qc.invalidateQueries({ queryKey: ["contatos-lista"] });
+}
+
+async function del(table: string, column: string, value: string) {
+  const { error } = await supabase.from(table).delete().eq(column, value);
+  if (error) throw new Error(error.message);
+}
+
+export function useExcluirLead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (leadId: string) => {
+      if (!enabled) throw new Error("Banco não conectado.");
+      await del("crm_interacoes", "lead_id", leadId);
+      await del("crm_tarefas", "lead_id", leadId);
+      await del("crm_leads", "id", leadId);
+      return true;
+    },
+    onSuccess: () => {
+      invalidarFunil(qc, "leads");
+      void qc.invalidateQueries({ queryKey: ["leads"] });
+      toast.success("Lead excluído com sucesso.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useExcluirOportunidade() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (oportunidadeId: string) => {
+      if (!enabled) throw new Error("Banco não conectado.");
+      await del("crm_interacoes", "oportunidade_id", oportunidadeId);
+      await del("crm_tarefas", "oportunidade_id", oportunidadeId);
+      await del("crm_oportunidades", "id", oportunidadeId);
+      return true;
+    },
+    onSuccess: () => {
+      invalidarFunil(qc, "vendas");
+      void qc.invalidateQueries({ queryKey: ["oportunidades"] });
+      toast.success("Oportunidade excluída com sucesso.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useRemoverDaNutricao() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (pessoaId: string) => {
+      if (!enabled) throw new Error("Banco não conectado.");
+      const { error } = await supabase
+        .from("pessoas")
+        .update({ etapa_nutricao_id: null })
+        .eq("id", pessoaId);
+      if (error) throw new Error(error.message);
+      return true;
+    },
+    onSuccess: () => {
+      invalidarFunil(qc, "nutricao");
+      toast.success("Contato removido do funil de nutrição.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+
+
 /* -------------------------- contatos + ranking --------------------------- */
 
 export type ContatoLista = {
