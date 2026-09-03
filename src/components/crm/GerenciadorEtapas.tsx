@@ -180,6 +180,7 @@ export function GerenciadorEtapas({
               <LinhaEtapa
                 key={etapa.id}
                 etapa={etapa}
+                funil={funil}
                 editando={editandoId === etapa.id}
                 onEditar={() => setEditandoId(etapa.id)}
                 onCancelar={() => setEditandoId(null)}
@@ -187,6 +188,9 @@ export function GerenciadorEtapas({
                   atualizar.mutate({ id: etapa.id, ...patch });
                   setEditandoId(null);
                 }}
+                onProbabilidade={(valor) =>
+                  atualizar.mutate({ id: etapa.id, probabilidade_fechamento: valor })
+                }
                 onExcluir={() => setAExcluir(etapa)}
               />
             ))}
