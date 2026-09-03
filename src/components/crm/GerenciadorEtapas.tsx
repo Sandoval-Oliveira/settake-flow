@@ -242,17 +242,21 @@ export function GerenciadorEtapas({
 
 function LinhaEtapa({
   etapa,
+  funil,
   editando,
   onEditar,
   onCancelar,
   onSalvar,
+  onProbabilidade,
   onExcluir,
 }: {
   etapa: Etapa;
+  funil: Funil;
   editando: boolean;
   onEditar: () => void;
   onCancelar: () => void;
   onSalvar: (patch: { nome: string; cor: string; tipo_final: TipoFinal }) => void;
+  onProbabilidade: (valor: number | null) => void;
   onExcluir: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
