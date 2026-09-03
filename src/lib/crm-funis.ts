@@ -151,20 +151,35 @@ export function useFunilNutricao() {
     queryKey: FUNIL_KEYS.nutricao,
     enabled,
     queryFn: async (): Promise<FunilData<PipelineNutricao>> => {
-      const [etapasRows, view] = await Promise.all([
+      const [etapasRows, view, interacoes] = await Promise.all([
         fetchEtapasComCards(
           "nutricao",
           "pessoas",
           "id, nome, whatsapp, email, segmento, origem, area_atuacao, aniversario, etapa_nutricao_id",
         ),
         plain<Row>("crm_pipeline_nutricao"),
+        plain<Row>("crm_interacoes", (q) => q.not("pessoa_id", "is", null)),
       ]);
       const byId = new Map(view.map((v) => [String(v['id']), v]));
+
+      // Última interação por pessoa (a view não expõe esse dado)
+      const ultimaInteracao = new Map<string, number>();
+      for (const i of interacoes) {
+        if (!i['pessoa_id'] || !i['criado_em']) continue;
+        const key = String(i['pessoa_id']);
+        const t = new Date(i['criado_em'] as string).getTime();
+        if (Number.isNaN(t)) continue;
+        if (!ultimaInteracao.has(key) || t > (ultimaInteracao.get(key) as number)) {
+          ultimaInteracao.set(key, t);
+        }
+      }
+
       const etapas = etapasRows.map(toEtapa);
       const cards: PipelineNutricao[] = [];
       for (const e of etapasRows) {
         for (const p of (e['pessoas'] ?? []) as Row[]) {
           const v = byId.get(String(p['id'])) ?? {};
+          const ultima = ultimaInteracao.get(String(p['id']));
           cards.push({
             ...(v as Row),
             ...p,
@@ -176,6 +191,10 @@ export function useFunilNutricao() {
             ltv_total: v['ltv_total'] ?? 0,
             ultima_transacao: v['ultima_transacao'] ?? null,
             tarefas_pendentes: v['tarefas_pendentes'] ?? 0,
+            dias_ultima_interacao:
+              ultima == null
+                ? null
+                : Math.floor((Date.now() - ultima) / 86_400_000),
           } as PipelineNutricao);
         }
       }

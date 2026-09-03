@@ -180,6 +180,7 @@ export function GerenciadorEtapas({
               <LinhaEtapa
                 key={etapa.id}
                 etapa={etapa}
+                funil={funil}
                 editando={editandoId === etapa.id}
                 onEditar={() => setEditandoId(etapa.id)}
                 onCancelar={() => setEditandoId(null)}
@@ -187,6 +188,9 @@ export function GerenciadorEtapas({
                   atualizar.mutate({ id: etapa.id, ...patch });
                   setEditandoId(null);
                 }}
+                onProbabilidade={(valor) =>
+                  atualizar.mutate({ id: etapa.id, probabilidade_fechamento: valor })
+                }
                 onExcluir={() => setAExcluir(etapa)}
               />
             ))}
@@ -238,17 +242,21 @@ export function GerenciadorEtapas({
 
 function LinhaEtapa({
   etapa,
+  funil,
   editando,
   onEditar,
   onCancelar,
   onSalvar,
+  onProbabilidade,
   onExcluir,
 }: {
   etapa: Etapa;
+  funil: Funil;
   editando: boolean;
   onEditar: () => void;
   onCancelar: () => void;
   onSalvar: (patch: { nome: string; cor: string; tipo_final: TipoFinal }) => void;
+  onProbabilidade: (valor: number | null) => void;
   onExcluir: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -320,6 +328,26 @@ function LinhaEtapa({
           <ColorDot value={etapa.cor ?? "#6B7280"} />
           <span className="flex-1 truncate text-sm text-foreground">{etapa.nome}</span>
           <TipoFinalBadge tipo={etapa.tipo_final} />
+          {funil === "vendas" ? (
+            <div className="flex items-center gap-1" title="Probabilidade de fechamento">
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                placeholder="—"
+                defaultValue={etapa.probabilidade_fechamento ?? ""}
+                key={`prob-${etapa.id}-${etapa.probabilidade_fechamento ?? "null"}`}
+                onBlur={(e) => {
+                  const raw = e.target.value.trim();
+                  const next = raw === "" ? null : Math.min(100, Math.max(0, Number(raw)));
+                  if (next !== (etapa.probabilidade_fechamento ?? null)) onProbabilidade(next);
+                }}
+                className="h-8 w-16 bg-background px-2 text-center text-brand focus-visible:border-brand"
+                aria-label="Probabilidade de fechamento (%)"
+              />
+              <span className="text-xs text-muted-foreground">%</span>
+            </div>
+          ) : null}
           <div className="flex items-center gap-1">
             <Button size="icon" variant="ghost" onClick={onEditar} aria-label="Editar etapa">
               <Pencil className="size-4" />

@@ -68,6 +68,7 @@ export type Etapa = {
   ordem: number;
   cor: string | null;
   tipo_final: "qualificado" | "desqualificado" | "ganho" | "perdido" | null;
+  probabilidade_fechamento?: number | null;
 };
 
 export type Lead = {

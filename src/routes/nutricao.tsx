@@ -12,11 +12,13 @@ import { RowActions } from "@/components/crm/RowActions";
 import { ConfirmDeleteDialog } from "@/components/crm/ConfirmDeleteDialog";
 import { OriginBadge, SoftBadge, WhatsAppButton } from "@/components/crm/primitives";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useFunilNutricao, useMoverCard, useRemoverDaNutricao } from "@/lib/crm-funis";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import type { PipelineNutricao } from "@/lib/crm-types";
 import { formatDate, formatDayMonth, formatMoney, whatsappLink } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 
 export const Route = createFileRoute("/nutricao")({
@@ -35,6 +37,18 @@ export const Route = createFileRoute("/nutricao")({
   component: NutricaoPage,
 });
 
+type Engajamento = { cor: string; label: string; titulo: string };
+
+function engajamento(dias: number | null | undefined): Engajamento {
+  if (dias == null)
+    return { cor: "bg-muted-foreground", label: "sem interações", titulo: "Nenhuma interação registrada" };
+  if (dias <= 14)
+    return { cor: "bg-success", label: `${dias}d sem contato`, titulo: "Engajamento recente" };
+  if (dias <= 30)
+    return { cor: "bg-warning", label: `${dias}d sem contato`, titulo: "Atenção: contato esfriando" };
+  return { cor: "bg-danger", label: `${dias}d sem contato`, titulo: "Frio: mais de 30 dias sem contato" };
+}
+
 function NutricaoCard({
   item,
   onClick,
@@ -46,14 +60,21 @@ function NutricaoCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const frio = (item.dias_ultima_interacao ?? 0) > 30;
+  const eng = engajamento(item.dias_ultima_interacao);
   return (
     <article
       onClick={onClick}
       className="kanban-card kanban-card-hover cursor-pointer rounded-xl border border-border p-3"
     >
       <div className="flex items-start justify-between gap-2">
-        <h3 className="text-sm font-semibold text-foreground">{item.nome}</h3>
+        <h3 className="flex min-w-0 items-center gap-2 text-sm font-semibold text-foreground">
+          <span
+            className={cn("size-2 shrink-0 rounded-full", eng.cor)}
+            title={eng.titulo}
+            aria-hidden
+          />
+          <span className="truncate">{item.nome}</span>
+        </h3>
         <div className="flex shrink-0 items-center gap-1">
           <WhatsAppButton href={whatsappLink(item.whatsapp)} />
           <RowActions floating deleteLabel="Remover do funil" onEdit={onEdit} onDelete={onDelete} />
@@ -65,21 +86,44 @@ function NutricaoCard({
         {item.area_atuacao ? <SoftBadge>{item.area_atuacao}</SoftBadge> : null}
       </div>
       <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
-        <span className={frio ? "text-danger" : undefined}>
-          {item.dias_ultima_interacao != null
-            ? `💬 ${item.dias_ultima_interacao}d sem contato`
-            : "💬 sem interações"}
-        </span>
+        <span title={eng.titulo}>💬 {eng.label}</span>
         {item.tarefas_pendentes ? <span>✅ {item.tarefas_pendentes}</span> : null}
       </div>
     </article>
   );
 }
 
+type UltimoContato =
+  | "qualquer"
+  | "2semanas"
+  | "1mes"
+  | "mais30"
+  | "mais60"
+  | "sem";
+
+const CONTATO_OPCOES: { value: UltimoContato; label: string }[] = [
+  { value: "qualquer", label: "Qualquer" },
+  { value: "2semanas", label: "Últimas 2 semanas" },
+  { value: "1mes", label: "Último mês" },
+  { value: "mais30", label: "Mais de 30 dias" },
+  { value: "mais60", label: "Mais de 60 dias" },
+  { value: "sem", label: "Sem interações" },
+];
+
+function passaContato(dias: number | null | undefined, filtro: UltimoContato) {
+  if (filtro === "qualquer") return true;
+  if (filtro === "sem") return dias == null;
+  if (dias == null) return false;
+  if (filtro === "2semanas") return dias <= 14;
+  if (filtro === "1mes") return dias <= 30;
+  if (filtro === "mais30") return dias > 30;
+  return dias > 60;
+}
+
 function NutricaoPage() {
   const { data, isLoading } = useFunilNutricao();
   const etapas = data?.etapas ?? [];
-  const pipeline = data?.cards ?? [];
+  const todos = data?.cards ?? [];
   const mover = useMoverCard("nutricao", "Cliente movido");
 
   const [view, setView] = useLocalStorage<"kanban" | "lista">("crm-nutricao-view", "kanban");
@@ -88,17 +132,42 @@ function NutricaoPage() {
   const [remover, setRemover] = useState<PipelineNutricao | null>(null);
   const removerDaNutricao = useRemoverDaNutricao();
 
+  const [busca, setBusca] = useState("");
+  const [segmento, setSegmento] = useState<string>("todos");
+  const [area, setArea] = useState<string>("todas");
+  const [contato, setContato] = useState<UltimoContato>("qualquer");
+
+  const segmentos = [...new Set(todos.map((p) => p.segmento).filter(Boolean))] as string[];
+  const areas = [...new Set(todos.map((p) => p.area_atuacao).filter(Boolean))] as string[];
+
+  const pipeline = todos.filter((p) => {
+    const termo = busca.trim().toLowerCase();
+    if (
+      termo &&
+      !`${p.nome ?? ""} ${p.whatsapp ?? ""} ${p.email ?? ""}`.toLowerCase().includes(termo)
+    )
+      return false;
+    if (segmento !== "todos" && p.segmento !== segmento) return false;
+    if (area !== "todas" && p.area_atuacao !== area) return false;
+    return passaContato(p.dias_ultima_interacao, contato);
+  });
+
   const ltvTotal = pipeline.reduce((s, p) => s + Number(p.ltv_total ?? 0), 0);
+  const frios = pipeline.filter((p) => (p.dias_ultima_interacao ?? 999) > 30).length;
+  const filtrosAtivos =
+    Boolean(busca.trim()) || segmento !== "todos" || area !== "todas" || contato !== "qualquer";
 
   const columns: KanbanColumn[] = etapas.map((e) => {
-    const soma = pipeline
-      .filter((p) => String(p.etapa_nutricao_id) === String(e.id))
-      .reduce((s, p) => s + Number(p.ltv_total ?? 0), 0);
+    const daEtapa = pipeline.filter((p) => String(p.etapa_nutricao_id) === String(e.id));
+    const soma = daEtapa.reduce((s, p) => s + Number(p.ltv_total ?? 0), 0);
+    const friosEtapa = daEtapa.filter((p) => (p.dias_ultima_interacao ?? 999) > 30).length;
     return {
       id: String(e.id),
       nome: e.nome,
       cor: e.cor,
-      subtitle: soma ? formatMoney(soma) : undefined,
+      subtitle: [soma ? formatMoney(soma) : null, friosEtapa ? `${friosEtapa} frio(s)` : null]
+        .filter(Boolean)
+        .join(" · ") || undefined,
     };
   });
 
@@ -161,7 +230,9 @@ function NutricaoPage() {
     <>
       <PageHeader
         title="Nutrição"
-        subtitle={`${pipeline.length} cliente(s) · LTV total ${formatMoney(ltvTotal)}`}
+        subtitle={`${pipeline.length} cliente(s)${
+          filtrosAtivos ? ` de ${todos.length}` : ""
+        } · LTV total ${formatMoney(ltvTotal)} · ${frios} frio(s)`}
         actions={
           <ViewToggle
             value={view}
@@ -173,6 +244,66 @@ function NutricaoPage() {
           />
         }
       />
+
+      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
+        <Input
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar por nome, WhatsApp ou email..."
+          className="max-w-xs focus-visible:border-brand"
+        />
+        <select
+          value={segmento}
+          onChange={(e) => setSegmento(e.target.value)}
+          aria-label="Segmento"
+          className="h-9 rounded-md border border-border bg-background px-2 text-xs text-foreground"
+        >
+          <option value="todos">Todos os segmentos</option>
+          {segmentos.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+        <select
+          value={area}
+          onChange={(e) => setArea(e.target.value)}
+          aria-label="Área de atuação"
+          className="h-9 rounded-md border border-border bg-background px-2 text-xs text-foreground"
+        >
+          <option value="todas">Todas as áreas</option>
+          {areas.map((a) => (
+            <option key={a} value={a}>
+              {a}
+            </option>
+          ))}
+        </select>
+        <select
+          value={contato}
+          onChange={(e) => setContato(e.target.value as UltimoContato)}
+          aria-label="Último contato"
+          className="h-9 rounded-md border border-border bg-background px-2 text-xs text-foreground"
+        >
+          {CONTATO_OPCOES.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        {filtrosAtivos ? (
+          <button
+            onClick={() => {
+              setBusca("");
+              setSegmento("todos");
+              setArea("todas");
+              setContato("qualquer");
+            }}
+            className="text-xs text-muted-foreground underline hover:text-foreground"
+          >
+            Limpar filtros
+          </button>
+        ) : null}
+      </div>
 
       {!isLoading && etapas.length === 0 ? (
         <EtapasEmpty funil="nutricao" />

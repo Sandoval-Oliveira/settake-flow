@@ -129,7 +129,7 @@ export function useEtapasFunil(funil: Funil) {
     queryFn: async (): Promise<Etapa[]> => {
       const { data, error } = await supabase
         .from("crm_funil_etapas")
-        .select("id, funil, nome, ordem, cor, tipo_final")
+        .select("id, funil, nome, ordem, cor, tipo_final, probabilidade_fechamento")
         .eq("funil", funil)
         .order("ordem", { ascending: true });
       if (error) throw new Error(error.message);
@@ -143,6 +143,7 @@ function useEtapasInvalidate(funil: Funil) {
   return () => {
     qc.invalidateQueries({ queryKey: ["crm_funil_etapas", funil] });
     qc.invalidateQueries({ queryKey: FUNIL_KEYS[funil] });
+    qc.invalidateQueries({ queryKey: ["dashboard"] });
   };
 }
 
@@ -151,6 +152,7 @@ export type EtapaPatch = {
   cor?: string | null;
   tipo_final?: Etapa["tipo_final"];
   ordem?: number;
+  probabilidade_fechamento?: number | null;
 };
 
 export function useCriarEtapa(funil: Funil) {
@@ -189,6 +191,15 @@ export function useReordenarEtapas(funil: Funil) {
   const invalidate = useEtapasInvalidate(funil);
   return useMutation({
     mutationFn: async (ids: string[]) => {
+      // Passo 1: ordens temporárias altas para evitar qualquer colisão de unicidade.
+      for (const [index, id] of ids.entries()) {
+        const { error } = await supabase
+          .from("crm_funil_etapas")
+          .update({ ordem: 1000 + index } as never)
+          .eq("id", id);
+        if (error) throw new Error(error.message);
+      }
+      // Passo 2: ordens finais.
       for (const [index, id] of ids.entries()) {
         const { error } = await supabase
           .from("crm_funil_etapas")
