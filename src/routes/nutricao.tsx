@@ -12,11 +12,13 @@ import { RowActions } from "@/components/crm/RowActions";
 import { ConfirmDeleteDialog } from "@/components/crm/ConfirmDeleteDialog";
 import { OriginBadge, SoftBadge, WhatsAppButton } from "@/components/crm/primitives";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useFunilNutricao, useMoverCard, useRemoverDaNutricao } from "@/lib/crm-funis";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import type { PipelineNutricao } from "@/lib/crm-types";
 import { formatDate, formatDayMonth, formatMoney, whatsappLink } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 
 export const Route = createFileRoute("/nutricao")({
