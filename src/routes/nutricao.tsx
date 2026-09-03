@@ -230,7 +230,9 @@ function NutricaoPage() {
     <>
       <PageHeader
         title="Nutrição"
-        subtitle={`${pipeline.length} cliente(s) · LTV total ${formatMoney(ltvTotal)}`}
+        subtitle={`${pipeline.length} cliente(s)${
+          filtrosAtivos ? ` de ${todos.length}` : ""
+        } · LTV total ${formatMoney(ltvTotal)} · ${frios} frio(s)`}
         actions={
           <ViewToggle
             value={view}
@@ -242,6 +244,66 @@ function NutricaoPage() {
           />
         }
       />
+
+      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card px-4 py-3">
+        <Input
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar por nome, WhatsApp ou email..."
+          className="max-w-xs focus-visible:border-brand"
+        />
+        <select
+          value={segmento}
+          onChange={(e) => setSegmento(e.target.value)}
+          aria-label="Segmento"
+          className="h-9 rounded-md border border-border bg-background px-2 text-xs text-foreground"
+        >
+          <option value="todos">Todos os segmentos</option>
+          {segmentos.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+        <select
+          value={area}
+          onChange={(e) => setArea(e.target.value)}
+          aria-label="Área de atuação"
+          className="h-9 rounded-md border border-border bg-background px-2 text-xs text-foreground"
+        >
+          <option value="todas">Todas as áreas</option>
+          {areas.map((a) => (
+            <option key={a} value={a}>
+              {a}
+            </option>
+          ))}
+        </select>
+        <select
+          value={contato}
+          onChange={(e) => setContato(e.target.value as UltimoContato)}
+          aria-label="Último contato"
+          className="h-9 rounded-md border border-border bg-background px-2 text-xs text-foreground"
+        >
+          {CONTATO_OPCOES.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        {filtrosAtivos ? (
+          <button
+            onClick={() => {
+              setBusca("");
+              setSegmento("todos");
+              setArea("todas");
+              setContato("qualquer");
+            }}
+            className="text-xs text-muted-foreground underline hover:text-foreground"
+          >
+            Limpar filtros
+          </button>
+        ) : null}
+      </div>
 
       {!isLoading && etapas.length === 0 ? (
         <EtapasEmpty funil="nutricao" />
