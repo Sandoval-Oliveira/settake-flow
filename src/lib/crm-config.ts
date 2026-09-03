@@ -129,7 +129,7 @@ export function useEtapasFunil(funil: Funil) {
     queryFn: async (): Promise<Etapa[]> => {
       const { data, error } = await supabase
         .from("crm_funil_etapas")
-        .select("id, funil, nome, ordem, cor, tipo_final")
+        .select("id, funil, nome, ordem, cor, tipo_final, probabilidade_fechamento")
         .eq("funil", funil)
         .order("ordem", { ascending: true });
       if (error) throw new Error(error.message);
@@ -143,6 +143,7 @@ function useEtapasInvalidate(funil: Funil) {
   return () => {
     qc.invalidateQueries({ queryKey: ["crm_funil_etapas", funil] });
     qc.invalidateQueries({ queryKey: FUNIL_KEYS[funil] });
+    qc.invalidateQueries({ queryKey: ["dashboard"] });
   };
 }
 
@@ -151,6 +152,7 @@ export type EtapaPatch = {
   cor?: string | null;
   tipo_final?: Etapa["tipo_final"];
   ordem?: number;
+  probabilidade_fechamento?: number | null;
 };
 
 export function useCriarEtapa(funil: Funil) {
