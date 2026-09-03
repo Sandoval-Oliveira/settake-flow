@@ -158,7 +158,7 @@ export function useFunilNutricao() {
           "id, nome, whatsapp, email, segmento, origem, area_atuacao, aniversario, etapa_nutricao_id",
         ),
         plain<Row>("crm_pipeline_nutricao"),
-        plain<Row>("crm_interacoes", "pessoa_id, criado_em"),
+        plain<Row>("crm_interacoes", (q) => q.not("pessoa_id", "is", null)),
       ]);
       const byId = new Map(view.map((v) => [String(v['id']), v]));
 
