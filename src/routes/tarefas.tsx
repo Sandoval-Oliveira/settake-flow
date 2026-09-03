@@ -104,7 +104,7 @@ function TarefasPage() {
         whatsapp: (base as { whatsapp?: string | null } | undefined)?.whatsapp ?? null,
         segmento: (base as { segmento?: string | null } | undefined)?.segmento ?? null,
         origem: (base as { origem?: string | null } | undefined)?.origem ?? null,
-        oportunidadeNome: op?.titulo ?? null,
+        oportunidadeNome: op?.nome ?? null,
         oportunidadeValor: op?.valor ?? null,
       };
     };
