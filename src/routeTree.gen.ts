@@ -18,6 +18,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as NutricaoRouteImport } from './routes/nutricao'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as TarefasRouteImport } from './routes/tarefas'
+import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as VendasRouteImport } from './routes/vendas'
 
 const IndexRoute = IndexRouteImport.update({
@@ -65,6 +66,11 @@ const TarefasRoute = TarefasRouteImport.update({
   path: '/tarefas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UsuariosRoute = UsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VendasRoute = VendasRouteImport.update({
   id: '/vendas',
   path: '/vendas',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/nutricao': typeof NutricaoRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/tarefas': typeof TarefasRoute
+  '/usuarios': typeof UsuariosRoute
   '/vendas': typeof VendasRoute
 }
 export interface FileRoutesByTo {
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/nutricao': typeof NutricaoRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/tarefas': typeof TarefasRoute
+  '/usuarios': typeof UsuariosRoute
   '/vendas': typeof VendasRoute
 }
 export interface FileRoutesById {
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/nutricao': typeof NutricaoRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/tarefas': typeof TarefasRoute
+  '/usuarios': typeof UsuariosRoute
   '/vendas': typeof VendasRoute
 }
 export interface FileRouteTypes {
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/nutricao'
     | '/redefinir-senha'
     | '/tarefas'
+    | '/usuarios'
     | '/vendas'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/nutricao'
     | '/redefinir-senha'
     | '/tarefas'
+    | '/usuarios'
     | '/vendas'
   id:
     | '__root__'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/nutricao'
     | '/redefinir-senha'
     | '/tarefas'
+    | '/usuarios'
     | '/vendas'
   fileRoutesById: FileRoutesById
 }
@@ -157,6 +169,7 @@ export interface RootRouteChildren {
   NutricaoRoute: typeof NutricaoRoute
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   TarefasRoute: typeof TarefasRoute
+  UsuariosRoute: typeof UsuariosRoute
   VendasRoute: typeof VendasRoute
 }
 
@@ -225,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TarefasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/usuarios': {
+      id: '/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof UsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vendas': {
       id: '/vendas'
       path: '/vendas'
@@ -245,6 +265,7 @@ const rootRouteChildren: RootRouteChildren = {
   NutricaoRoute: NutricaoRoute,
   RedefinirSenhaRoute: RedefinirSenhaRoute,
   TarefasRoute: TarefasRoute,
+  UsuariosRoute: UsuariosRoute,
   VendasRoute: VendasRoute,
 }
 export const routeTree = rootRouteImport
