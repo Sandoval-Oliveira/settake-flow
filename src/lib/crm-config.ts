@@ -1,3 +1,4 @@
+import { crmError } from "@/lib/supabase-error";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase, isSupabaseConfigured } from "./supabase";
@@ -24,7 +25,7 @@ export function useLista(tabela: ListaTabela) {
         .from(tabela)
         .select("id, nome, ativo, ordem")
         .order("ordem", { ascending: true });
-      if (error) throw new Error(error.message);
+      if (error) throw crmError(error);
       return (data ?? []) as unknown as ItemLista[];
     },
   });
@@ -42,7 +43,7 @@ export function useOpcoesLista(tabela: ListaTabela) {
         .select("id, nome")
         .eq("ativo", true)
         .order("ordem", { ascending: true });
-      if (error) throw new Error(error.message);
+      if (error) throw crmError(error);
       return ((data ?? []) as unknown as { nome: string }[]).map((r) => ({
         value: r.nome,
         label: r.nome,
@@ -63,7 +64,7 @@ export function useCriarItemLista(tabela: ListaTabela) {
   return useMutation({
     mutationFn: async ({ nome, ordem }: { nome: string; ordem: number }) => {
       const { error } = await supabase.from(tabela).insert({ nome, ordem, ativo: true } as never);
-      if (error) throw new Error(error.message);
+      if (error) throw crmError(error);
     },
     onSuccess: () => {
       invalidate();
@@ -81,7 +82,7 @@ export function useAtualizarItemLista(tabela: ListaTabela) {
         .from(tabela)
         .update(patch as never)
         .eq("id", id);
-      if (error) throw new Error(error.message);
+      if (error) throw crmError(error);
     },
     onSuccess: invalidate,
     onError: (e: Error) => toast.error(e.message),
@@ -93,7 +94,7 @@ export function useExcluirItemLista(tabela: ListaTabela) {
   return useMutation({
     mutationFn: async (id: number) => {
       const { error } = await supabase.from(tabela).delete().eq("id", id);
-      if (error) throw new Error(error.message);
+      if (error) throw crmError(error);
     },
     onSuccess: () => {
       invalidate();
@@ -112,7 +113,7 @@ export function useReordenarLista(tabela: ListaTabela) {
           .from(tabela)
           .update({ ordem: index + 1 } as never)
           .eq("id", id);
-        if (error) throw new Error(error.message);
+        if (error) throw crmError(error);
       }
     },
     onSuccess: invalidate,
@@ -132,7 +133,7 @@ export function useEtapasFunil(funil: Funil) {
         .select("id, funil, nome, ordem, cor, tipo_final, probabilidade_fechamento")
         .eq("funil", funil)
         .order("ordem", { ascending: true });
-      if (error) throw new Error(error.message);
+      if (error) throw crmError(error);
       return (data ?? []) as unknown as Etapa[];
     },
   });
@@ -162,7 +163,7 @@ export function useCriarEtapa(funil: Funil) {
       const { error } = await supabase
         .from("crm_funil_etapas")
         .insert({ ...payload, funil } as never);
-      if (error) throw new Error(error.message);
+      if (error) throw crmError(error);
     },
     onSuccess: () => {
       invalidate();
@@ -180,7 +181,7 @@ export function useAtualizarEtapa(funil: Funil) {
         .from("crm_funil_etapas")
         .update(patch as never)
         .eq("id", id);
-      if (error) throw new Error(error.message);
+      if (error) throw crmError(error);
     },
     onSuccess: invalidate,
     onError: (e: Error) => toast.error(e.message),
@@ -197,7 +198,7 @@ export function useReordenarEtapas(funil: Funil) {
           .from("crm_funil_etapas")
           .update({ ordem: 1000 + index } as never)
           .eq("id", id);
-        if (error) throw new Error(error.message);
+        if (error) throw crmError(error);
       }
       // Passo 2: ordens finais.
       for (const [index, id] of ids.entries()) {
@@ -205,7 +206,7 @@ export function useReordenarEtapas(funil: Funil) {
           .from("crm_funil_etapas")
           .update({ ordem: index + 1 } as never)
           .eq("id", id);
-        if (error) throw new Error(error.message);
+        if (error) throw crmError(error);
       }
     },
     onSuccess: invalidate,
@@ -240,7 +241,7 @@ export async function contarRegistrosNaEtapa(funil: Funil, etapaId: string): Pro
     .eq(cfg.coluna, etapaId);
   q = cfg.filtro(q);
   const { count, error } = await q;
-  if (error) throw new Error(error.message);
+  if (error) throw crmError(error);
   return count ?? 0;
 }
 
@@ -255,7 +256,7 @@ export function useExcluirEtapa(funil: Funil) {
         );
       }
       const { error } = await supabase.from("crm_funil_etapas").delete().eq("id", id);
-      if (error) throw new Error(error.message);
+      if (error) throw crmError(error);
     },
     onSuccess: () => {
       invalidate();

@@ -1,3 +1,4 @@
+import { crmError } from "@/lib/supabase-error";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase, isSupabaseConfigured } from "./supabase";
@@ -18,7 +19,7 @@ async function plain<T>(table: string, build?: (q: any) => any): Promise<T[]> {
   let q: any = supabase.from(table).select("*");
   if (build) q = build(q);
   const { data, error } = await q;
-  if (error) throw new Error(error.message);
+  if (error) throw crmError(error);
   return (data ?? []) as T[];
 }
 
@@ -30,7 +31,7 @@ async function fetchEtapasComCards(funil: Funil, rel: string, fields: string): P
     .select(`id, funil, nome, ordem, cor, tipo_final, ${rel} ( ${fields} )`)
     .eq("funil", funil)
     .order("ordem", { ascending: true });
-  if (error) throw new Error(error.message);
+  if (error) throw crmError(error);
   return (data ?? []) as Row[];
 }
 
@@ -213,7 +214,7 @@ export function useMoverCard(funil: Funil, successMessage = "Card movido") {
     mutationFn: async ({ table, id, values }: MoveArgs) => {
       if (!enabled) throw new Error("Banco não conectado.");
       const { error } = await supabase.from(table).update(values).eq("id", id);
-      if (error) throw new Error(error.message);
+      if (error) throw crmError(error);
       return true;
     },
     onSuccess: () => {
@@ -241,7 +242,7 @@ function invalidarFunil(qc: ReturnType<typeof useQueryClient>, funil: Funil) {
 
 async function del(table: string, column: string, value: string) {
   const { error } = await supabase.from(table).delete().eq(column, value);
-  if (error) throw new Error(error.message);
+  if (error) throw crmError(error);
 }
 
 export function useExcluirLead() {
@@ -291,7 +292,7 @@ export function useRemoverDaNutricao() {
         .from("pessoas")
         .update({ etapa_nutricao_id: null })
         .eq("id", pessoaId);
-      if (error) throw new Error(error.message);
+      if (error) throw crmError(error);
       return true;
     },
     onSuccess: () => {
@@ -337,7 +338,7 @@ export function useContatosLista() {
           "id, nome, tipo, whatsapp, email, segmento, area_atuacao, origem, instagram, quem_indicou, aniversario, criado_em, etapa_nutricao_id, crm_funil_etapas ( nome, cor ), transacoes ( valor, natureza_id )",
         )
         .order("nome", { ascending: true });
-      if (error) throw new Error(error.message);
+      if (error) throw crmError(error);
       return ((data ?? []) as Row[]).map((c) => {
         const etapa = (c['crm_funil_etapas'] ?? null) as Row | null;
         const transacoes = (c['transacoes'] ?? []) as Row[];
@@ -389,7 +390,7 @@ export function useRankingReceita(inicio: string, fim: string) {
         .gte("criado_em", inicio)
         .lte("criado_em", fim)
         .not("pessoa_id", "is", null);
-      if (error) throw new Error(error.message);
+      if (error) throw crmError(error);
       const rows = (data ?? []) as Row[];
 
       const acc = new Map<string, RankingItem>();

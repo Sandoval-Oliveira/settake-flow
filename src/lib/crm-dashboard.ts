@@ -1,3 +1,4 @@
+import { crmError } from "@/lib/supabase-error";
 import { useQuery } from "@tanstack/react-query";
 import { supabase, isSupabaseConfigured } from "./supabase";
 
