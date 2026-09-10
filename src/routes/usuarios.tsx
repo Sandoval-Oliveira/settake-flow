@@ -185,7 +185,7 @@ function UsuariosPage() {
       <PageHeader
         title="Usuários"
         subtitle="Crie acessos, defina papéis e controle quem usa o CRM."
-        action={
+        actions={
           <Button onClick={() => setNovo(true)} className="brand-gradient text-brand-foreground">
             <Plus className="size-4" /> Novo usuário
           </Button>
