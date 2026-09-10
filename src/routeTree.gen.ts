@@ -12,8 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ContatosRouteImport } from './routes/contatos'
+import { Route as EsqueciSenhaRouteImport } from './routes/esqueci-senha'
 import { Route as LeadsRouteImport } from './routes/leads'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as NutricaoRouteImport } from './routes/nutricao'
+import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as TarefasRouteImport } from './routes/tarefas'
 import { Route as VendasRouteImport } from './routes/vendas'
 
@@ -32,14 +35,29 @@ const ContatosRoute = ContatosRouteImport.update({
   path: '/contatos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EsqueciSenhaRoute = EsqueciSenhaRouteImport.update({
+  id: '/esqueci-senha',
+  path: '/esqueci-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LeadsRoute = LeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NutricaoRoute = NutricaoRouteImport.update({
   id: '/nutricao',
   path: '/nutricao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
+  id: '/redefinir-senha',
+  path: '/redefinir-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TarefasRoute = TarefasRouteImport.update({
@@ -57,8 +75,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/contatos': typeof ContatosRoute
+  '/esqueci-senha': typeof EsqueciSenhaRoute
   '/leads': typeof LeadsRoute
+  '/login': typeof LoginRoute
   '/nutricao': typeof NutricaoRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/tarefas': typeof TarefasRoute
   '/vendas': typeof VendasRoute
 }
@@ -66,8 +87,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/contatos': typeof ContatosRoute
+  '/esqueci-senha': typeof EsqueciSenhaRoute
   '/leads': typeof LeadsRoute
+  '/login': typeof LoginRoute
   '/nutricao': typeof NutricaoRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/tarefas': typeof TarefasRoute
   '/vendas': typeof VendasRoute
 }
@@ -76,8 +100,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/configuracoes': typeof ConfiguracoesRoute
   '/contatos': typeof ContatosRoute
+  '/esqueci-senha': typeof EsqueciSenhaRoute
   '/leads': typeof LeadsRoute
+  '/login': typeof LoginRoute
   '/nutricao': typeof NutricaoRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/tarefas': typeof TarefasRoute
   '/vendas': typeof VendasRoute
 }
@@ -87,8 +114,11 @@ export interface FileRouteTypes {
     | '/'
     | '/configuracoes'
     | '/contatos'
+    | '/esqueci-senha'
     | '/leads'
+    | '/login'
     | '/nutricao'
+    | '/redefinir-senha'
     | '/tarefas'
     | '/vendas'
   fileRoutesByTo: FileRoutesByTo
@@ -96,8 +126,11 @@ export interface FileRouteTypes {
     | '/'
     | '/configuracoes'
     | '/contatos'
+    | '/esqueci-senha'
     | '/leads'
+    | '/login'
     | '/nutricao'
+    | '/redefinir-senha'
     | '/tarefas'
     | '/vendas'
   id:
@@ -105,8 +138,11 @@ export interface FileRouteTypes {
     | '/'
     | '/configuracoes'
     | '/contatos'
+    | '/esqueci-senha'
     | '/leads'
+    | '/login'
     | '/nutricao'
+    | '/redefinir-senha'
     | '/tarefas'
     | '/vendas'
   fileRoutesById: FileRoutesById
@@ -115,8 +151,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ContatosRoute: typeof ContatosRoute
+  EsqueciSenhaRoute: typeof EsqueciSenhaRoute
   LeadsRoute: typeof LeadsRoute
+  LoginRoute: typeof LoginRoute
   NutricaoRoute: typeof NutricaoRoute
+  RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   TarefasRoute: typeof TarefasRoute
   VendasRoute: typeof VendasRoute
 }
@@ -144,6 +183,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContatosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/esqueci-senha': {
+      id: '/esqueci-senha'
+      path: '/esqueci-senha'
+      fullPath: '/esqueci-senha'
+      preLoaderRoute: typeof EsqueciSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/leads': {
       id: '/leads'
       path: '/leads'
@@ -151,11 +197,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LeadsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/nutricao': {
       id: '/nutricao'
       path: '/nutricao'
       fullPath: '/nutricao'
       preLoaderRoute: typeof NutricaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redefinir-senha': {
+      id: '/redefinir-senha'
+      path: '/redefinir-senha'
+      fullPath: '/redefinir-senha'
+      preLoaderRoute: typeof RedefinirSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tarefas': {
@@ -179,8 +239,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
   ContatosRoute: ContatosRoute,
+  EsqueciSenhaRoute: EsqueciSenhaRoute,
   LeadsRoute: LeadsRoute,
+  LoginRoute: LoginRoute,
   NutricaoRoute: NutricaoRoute,
+  RedefinirSenhaRoute: RedefinirSenhaRoute,
   TarefasRoute: TarefasRoute,
   VendasRoute: VendasRoute,
 }
