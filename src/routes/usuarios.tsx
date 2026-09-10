@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { RequirePapel } from "@/components/crm/AuthGate";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -53,7 +54,7 @@ export const Route = createFileRoute("/usuarios")({
       { property: "og:description", content: "Crie e administre acessos ao SetTake CRM." },
     ],
   }),
-  component: UsuariosPage,
+  component: UsuariosPageProtegida,
 });
 
 type UsuarioRow = {
@@ -96,6 +97,14 @@ function PapelBadge({ role }: { role: Papel | null }) {
     >
       {PAPEL_LABEL[role]}
     </span>
+  );
+}
+
+function UsuariosPageProtegida() {
+  return (
+    <RequirePapel papeis={["admin"]}>
+      <UsuariosPage />
+    </RequirePapel>
   );
 }
 
