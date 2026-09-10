@@ -2,7 +2,7 @@ import { useEffect, type ReactNode } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/lib/auth";
+import { useAuth, type Papel } from "@/lib/auth";
 
 const ROTAS_PUBLICAS = ["/login", "/esqueci-senha", "/redefinir-senha"];
 
@@ -55,6 +55,44 @@ export function AuthGate({ children }: { children: ReactNode }) {
           <Button className="mt-5" variant="secondary" onClick={() => void signOut()}>
             Sair
           </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
+/**
+ * Bloqueia uma página para quem não tem um dos papéis exigidos.
+ * O banco também bloqueia (policies) — isto é a camada de interface.
+ */
+export function RequirePapel({ papeis, children }: { papeis: Papel[]; children: ReactNode }) {
+  const { role, loading } = useAuth();
+  const navigate = useNavigate();
+  const permitido = role !== null && papeis.includes(role);
+
+  useEffect(() => {
+    if (!loading && role && !permitido) navigate({ to: "/", replace: true });
+  }, [loading, role, permitido, navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-8 w-52" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (!permitido) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="max-w-sm rounded-xl border border-border bg-card p-8 text-center">
+          <h1 className="text-lg font-semibold text-foreground">Sem acesso</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Seu perfil não tem permissão para esta área.
+          </p>
         </div>
       </div>
     );
