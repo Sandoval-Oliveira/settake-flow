@@ -6,6 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth";
 
 type Props = {
   onEdit: () => void;
@@ -21,6 +22,7 @@ export function RowActions({
   deleteLabel = "Excluir",
   floating = false,
 }: Props) {
+  const { isGestao } = useAuth();
   return (
     <div
       className={cn(floating && "card-actions opacity-0 transition-opacity duration-150")}
@@ -41,9 +43,11 @@ export function RowActions({
           <DropdownMenuItem onClick={onEdit}>
             <Pencil className="size-4" /> Editar
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={onDelete} className="text-danger focus:text-danger">
-            <Trash2 className="size-4" /> {deleteLabel}
-          </DropdownMenuItem>
+          {isGestao ? (
+            <DropdownMenuItem onClick={onDelete} className="text-danger focus:text-danger">
+              <Trash2 className="size-4" /> {deleteLabel}
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

@@ -1,3 +1,4 @@
+import { crmError } from "@/lib/supabase-error";
 import { useQuery } from "@tanstack/react-query";
 import { supabase, isSupabaseConfigured } from "./supabase";
 
@@ -75,7 +76,7 @@ export function useDashboard() {
       ]);
 
       for (const r of [leadsRes, vendasRes, leads90Res]) {
-        if (r.error) throw new Error(r.error.message);
+        if (r.error) throw crmError(r.error);
       }
 
       const etapasLeadsRows = (leadsRes.data ?? []) as Row[];

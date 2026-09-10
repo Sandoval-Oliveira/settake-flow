@@ -1,3 +1,4 @@
+import { crmError } from "@/lib/supabase-error";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase, isSupabaseConfigured } from "./supabase";
@@ -12,7 +13,7 @@ export function useConcluirTarefa() {
         .from("crm_tarefas")
         .update({ status: "Concluída", concluida_em: new Date().toISOString() })
         .eq("id", String(tarefa.id));
-      if (error) throw new Error(error.message);
+      if (error) throw crmError(error);
 
       if (nota?.trim()) {
         const { error: e2 } = await supabase.from("crm_interacoes").insert({
@@ -45,7 +46,7 @@ export function useReabrirTarefa() {
         .from("crm_tarefas")
         .update({ status: "Pendente", concluida_em: null })
         .eq("id", String(tarefa.id));
-      if (error) throw new Error(error.message);
+      if (error) throw crmError(error);
       return true;
     },
     onSuccess: () => {

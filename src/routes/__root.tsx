@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -12,6 +13,8 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppSidebar } from "@/components/crm/AppSidebar";
+import { AuthGate, isRotaPublica } from "@/components/crm/AuthGate";
+import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
@@ -110,24 +113,34 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const publica = isRotaPublica(pathname);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-background">
-        <AppSidebar />
-        <main className="crm-main">
-          {!isSupabaseConfigured ? (
-            <div className="border-b border-warning/30 bg-warning/10 px-6 py-2.5 text-xs text-warning">
-              Banco de dados não conectado. Conecte o projeto Supabase do ERP em Configurações →
-              Integrações para carregar os dados.
-            </div>
-          ) : null}
-          <div className="px-6 py-6">
-            {/* Required: nested routes render here. */}
+      <AuthProvider>
+        <AuthGate>
+          {publica ? (
             <Outlet />
-          </div>
-        </main>
-      </div>
+          ) : (
+            <div className="min-h-screen bg-background">
+              <AppSidebar />
+              <main className="crm-main">
+                {!isSupabaseConfigured ? (
+                  <div className="border-b border-warning/30 bg-warning/10 px-6 py-2.5 text-xs text-warning">
+                    Banco de dados não conectado. Conecte o projeto Supabase do ERP em Configurações →
+                    Integrações para carregar os dados.
+                  </div>
+                ) : null}
+                <div className="px-6 py-6">
+                  {/* Required: nested routes render here. */}
+                  <Outlet />
+                </div>
+              </main>
+            </div>
+          )}
+        </AuthGate>
+      </AuthProvider>
       <Toaster position="top-right" richColors />
     </QueryClientProvider>
   );

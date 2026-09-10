@@ -1,3 +1,4 @@
+import { crmError } from "@/lib/supabase-error";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase, isSupabaseConfigured } from "./supabase";
@@ -26,7 +27,7 @@ async function select<T>(table: string, build?: (q: any) => any): Promise<T[]> {
   let q: any = supabase.from(table).select("*");
   if (build) q = build(q);
   const { data, error } = await q;
-  if (error) throw new Error(error.message);
+  if (error) throw crmError(error);
   return (data ?? []) as T[];
 }
 
@@ -264,7 +265,7 @@ async function write(
   }
   if (op === "insert") {
     const { data, error } = await supabase.from(table).insert(payload!).select("*").single();
-    if (error) throw new Error(error.message);
+    if (error) throw crmError(error);
     return data;
   }
   if (op === "update") {
@@ -274,11 +275,11 @@ async function write(
       .eq("id", id!)
       .select("*")
       .single();
-    if (error) throw new Error(error.message);
+    if (error) throw crmError(error);
     return data;
   }
   const { error } = await supabase.from(table).delete().eq("id", id!);
-  if (error) throw new Error(error.message);
+  if (error) throw crmError(error);
   return null;
 }
 

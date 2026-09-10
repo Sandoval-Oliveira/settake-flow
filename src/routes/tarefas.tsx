@@ -312,14 +312,16 @@ function TarefasPage() {
                       >
                         Editar
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-danger hover:text-danger"
-                        onClick={() => setAExcluir(t)}
-                      >
-                        Excluir
-                      </Button>
+                      {isGestao ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-danger hover:text-danger"
+                          onClick={() => setAExcluir(t)}
+                        >
+                          Excluir
+                        </Button>
+                      ) : null}
                     </span>
                   </li>
                 );
