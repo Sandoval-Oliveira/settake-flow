@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { RequirePapel } from "@/components/crm/AuthGate";
 import { useState } from "react";
 import { PageHeader } from "@/components/crm/PageHeader";
 import { GerenciadorLista } from "@/components/crm/GerenciadorLista";
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/configuracoes")({
       },
     ],
   }),
-  component: ConfiguracoesPage,
+  component: ConfiguracoesPageProtegida,
 });
 
 type SecaoId =
@@ -50,6 +51,14 @@ const GRUPOS: { label: string; itens: { id: SecaoId; label: string }[] }[] = [
     ],
   },
 ];
+
+function ConfiguracoesPageProtegida() {
+  return (
+    <RequirePapel papeis={["admin", "socio"]}>
+      <ConfiguracoesPage />
+    </RequirePapel>
+  );
+}
 
 function ConfiguracoesPage() {
   const [secao, setSecao] = useState<SecaoId>("segmentos");
