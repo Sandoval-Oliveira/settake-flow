@@ -16,6 +16,7 @@ import { Route as EsqueciSenhaRouteImport } from './routes/esqueci-senha'
 import { Route as LeadsRouteImport } from './routes/leads'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as NutricaoRouteImport } from './routes/nutricao'
+import { Route as PromotoresRouteImport } from './routes/promotores'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as TarefasRouteImport } from './routes/tarefas'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
@@ -56,6 +57,11 @@ const NutricaoRoute = NutricaoRouteImport.update({
   path: '/nutricao',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PromotoresRoute = PromotoresRouteImport.update({
+  id: '/promotores',
+  path: '/promotores',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
   id: '/redefinir-senha',
   path: '/redefinir-senha',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
   '/nutricao': typeof NutricaoRoute
+  '/promotores': typeof PromotoresRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/tarefas': typeof TarefasRoute
   '/usuarios': typeof UsuariosRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
   '/nutricao': typeof NutricaoRoute
+  '/promotores': typeof PromotoresRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/tarefas': typeof TarefasRoute
   '/usuarios': typeof UsuariosRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
   '/nutricao': typeof NutricaoRoute
+  '/promotores': typeof PromotoresRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/tarefas': typeof TarefasRoute
   '/usuarios': typeof UsuariosRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/leads'
     | '/login'
     | '/nutricao'
+    | '/promotores'
     | '/redefinir-senha'
     | '/tarefas'
     | '/usuarios'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/leads'
     | '/login'
     | '/nutricao'
+    | '/promotores'
     | '/redefinir-senha'
     | '/tarefas'
     | '/usuarios'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/leads'
     | '/login'
     | '/nutricao'
+    | '/promotores'
     | '/redefinir-senha'
     | '/tarefas'
     | '/usuarios'
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   LeadsRoute: typeof LeadsRoute
   LoginRoute: typeof LoginRoute
   NutricaoRoute: typeof NutricaoRoute
+  PromotoresRoute: typeof PromotoresRoute
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   TarefasRoute: typeof TarefasRoute
   UsuariosRoute: typeof UsuariosRoute
@@ -224,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NutricaoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/promotores': {
+      id: '/promotores'
+      path: '/promotores'
+      fullPath: '/promotores'
+      preLoaderRoute: typeof PromotoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/redefinir-senha': {
       id: '/redefinir-senha'
       path: '/redefinir-senha'
@@ -263,6 +283,7 @@ const rootRouteChildren: RootRouteChildren = {
   LeadsRoute: LeadsRoute,
   LoginRoute: LoginRoute,
   NutricaoRoute: NutricaoRoute,
+  PromotoresRoute: PromotoresRoute,
   RedefinirSenhaRoute: RedefinirSenhaRoute,
   TarefasRoute: TarefasRoute,
   UsuariosRoute: UsuariosRoute,

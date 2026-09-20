@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Field, SelectField, enumOptions } from "./primitives";
 import { useOpcoesLista } from "@/lib/crm-config";
 import { ORIGENS, SEGMENTOS, type Etapa, type Lead } from "@/lib/crm-types";
-import { useSaveRecord } from "@/lib/crm-api";
+import { usePromotores, useSaveRecord } from "@/lib/crm-api";
 import { maskWhatsapp, normalizeInstagram } from "@/lib/format";
 
 type Form = {
@@ -22,6 +22,7 @@ type Form = {
   segmento: string | null;
   origem: string | null;
   quem_indicou: string;
+  promotor_id: string | null;
   instagram: string;
   etapa_id: string | null;
   observacoes: string;
@@ -34,6 +35,7 @@ const EMPTY: Form = {
   segmento: null,
   origem: null,
   quem_indicou: "",
+  promotor_id: null,
   instagram: "",
   etapa_id: null,
   observacoes: "",
@@ -52,6 +54,7 @@ export function LeadDialog({
 }) {
   const { data: optSegmentos } = useOpcoesLista("crm_config_segmentos");
   const { data: optOrigens } = useOpcoesLista("crm_config_origens");
+  const { data: promotores = [] } = usePromotores(true);
   const [form, setForm] = useState<Form>(EMPTY);
   const save = useSaveRecord(lead ? "Lead atualizado" : "Lead criado");
 
@@ -66,6 +69,7 @@ export function LeadDialog({
             segmento: lead.segmento ?? null,
             origem: lead.origem ?? null,
             quem_indicou: lead.quem_indicou ?? "",
+            promotor_id: lead.promotor_id != null ? String(lead.promotor_id) : null,
             instagram: lead.instagram ?? "",
             etapa_id: lead.etapa_id ? String(lead.etapa_id) : (etapas[0]?.id ?? null),
             observacoes: lead.observacoes ?? "",
@@ -90,6 +94,7 @@ export function LeadDialog({
           segmento: form.segmento,
           origem: form.origem,
           quem_indicou: indicacao ? form.quem_indicou.trim() || null : null,
+          promotor_id: indicacao && form.promotor_id ? Number(form.promotor_id) : null,
           instagram: form.instagram ? normalizeInstagram(form.instagram) : null,
           etapa_id: form.etapa_id,
           observacoes: form.observacoes.trim() || null,
@@ -138,12 +143,26 @@ export function LeadDialog({
             />
           </Field>
           {indicacao ? (
-            <Field label="Quem indicou">
-              <Input
-                value={form.quem_indicou}
-                onChange={(e) => set("quem_indicou", e.target.value)}
-              />
-            </Field>
+            <>
+              <Field label="Promotor (programa de indicação)">
+                <SelectField
+                  value={form.promotor_id}
+                  onChange={(v) => {
+                    set("promotor_id", v);
+                    const p = promotores.find((x) => String(x.id) === v);
+                    if (p && !form.quem_indicou.trim()) set("quem_indicou", p.nome);
+                  }}
+                  options={promotores.map((p) => ({ value: String(p.id), label: p.nome }))}
+                />
+              </Field>
+              <Field label="Quem indicou (texto livre)">
+                <Input
+                  value={form.quem_indicou}
+                  onChange={(e) => set("quem_indicou", e.target.value)}
+                  placeholder="Nome de quem indicou"
+                />
+              </Field>
+            </>
           ) : null}
           <Field label="Instagram">
             <Input

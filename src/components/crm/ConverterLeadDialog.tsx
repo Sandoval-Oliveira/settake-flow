@@ -70,6 +70,7 @@ export function ConverterLeadDialog({
           area_atuacao: area,
           origem: lead!.origem ?? null,
           quem_indicou: lead!.quem_indicou ?? null,
+          promotor_id: lead!.promotor_id ?? null,
           instagram: lead!.instagram ?? null,
         },
         oportunidade: criarOportunidade
@@ -92,6 +93,12 @@ export function ConverterLeadDialog({
         <DialogHeader>
           <DialogTitle>Converter lead em cliente</DialogTitle>
         </DialogHeader>
+        {lead.promotor_id != null || lead.quem_indicou ? (
+          <p className="rounded-lg border border-brand/30 bg-brand/5 px-3 py-2 text-xs text-foreground">
+            Indicação de <span className="font-semibold">{lead.quem_indicou ?? "promotor"}</span> — a
+            indicação será contabilizada na meta do promotor ao converter.
+          </p>
+        ) : null}
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Nome *" className="sm:col-span-2">
             <Input value={nome} onChange={(e) => setNome(e.target.value)} />

@@ -24,6 +24,7 @@ import { useReabrirTarefa } from "@/lib/crm-tarefas";
 import { PRIORIDADES, type Prioridade, type Tarefa } from "@/lib/crm-types";
 import { formatDateTime, toDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/tarefas")({
   head: () => ({
@@ -66,6 +67,8 @@ function isHoje(t: Tarefa) {
 }
 
 function TarefasPage() {
+  const { role } = useAuth();
+  const isGestao = role === "admin" || role === "socio";
   const { data: tarefas = [], isLoading } = useTarefas();
   const { data: leads = [] } = useLeads();
   const { data: pessoas = [] } = usePessoas();

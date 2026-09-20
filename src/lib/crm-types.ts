@@ -79,6 +79,7 @@ export type Lead = {
   segmento: Segmento | null;
   origem: Origem | null;
   quem_indicou: string | null;
+  promotor_id: number | string | null;
   instagram: string | null;
   etapa_id: string | null;
   convertido: boolean | null;
@@ -107,6 +108,7 @@ export type Pessoa = {
   segmento: Segmento | null;
   origem: Origem | null;
   quem_indicou: string | null;
+  promotor_id: number | string | null;
   instagram: string | null;
   area_atuacao: AreaAtuacao | null;
   endereco: string | null;
@@ -236,4 +238,32 @@ export type Servico = {
   id: number | string;
   nome: string;
   grupo_nome: string;
+};
+
+/* ------------------------------- promotores ------------------------------- */
+
+export type Promotor = {
+  id: number;
+  nome: string;
+  whatsapp: string | null;
+  email: string | null;
+  pessoa_id: number | string | null;
+  meta_indicacoes: number;
+  prazo_inicio: string;
+  prazo_fim: string | null;
+  ativo: boolean;
+  observacoes: string | null;
+  criado_em: string | null;
+  atualizado_em: string | null;
+};
+
+export type PromotorResumo = Promotor & {
+  empresa: string | null;
+  indicacoes: number | null;
+  clientes_convertidos: number | null;
+  faltam: number | null;
+  pct_meta: number | null;
+  dias_restantes: number | null;
+  receita_gerada: number | null;
+  receita_prevista: number | null;
 };

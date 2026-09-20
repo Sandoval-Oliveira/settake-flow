@@ -12,6 +12,7 @@ import {
   UserCog,
   LogOut,
   type LucideIcon,
+  Megaphone,
 } from "lucide-react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -26,6 +27,7 @@ const ITENS_PRINCIPAIS: Item[] = [
   { to: "/vendas", label: "Vendas", icon: Briefcase },
   { to: "/nutricao", label: "Nutrição", icon: Sprout },
   { to: "/contatos", label: "Contatos", icon: Contact },
+  { to: "/promotores", label: "Promotores", icon: Megaphone },
   { to: "/tarefas", label: "Tarefas", icon: CheckSquare },
 ];
 

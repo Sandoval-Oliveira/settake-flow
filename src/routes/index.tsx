@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertCircle } from "lucide-react";
 import { PageHeader } from "@/components/crm/PageHeader";
 import { EmptyState, OriginBadge, Panel, PriorityBadge, WhatsAppButton } from "@/components/crm/primitives";
-import { useAniversariantes, useMetricas, useTarefasPendentesView } from "@/lib/crm-api";
+import { useAniversariantes, useMetricas, usePromotoresResumo, useTarefasPendentesView } from "@/lib/crm-api";
 import { useDashboard } from "@/lib/crm-dashboard";
 import { formatDateTime, formatDayMonth, formatMoney, whatsappLink } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -77,6 +77,8 @@ function Dashboard() {
   const { data: tarefas = [] } = useTarefasPendentesView();
   const { data: aniversariantes = [] } = useAniversariantes();
   const { data: metricas = [] } = useMetricas();
+  const { data: promotores = [] } = usePromotoresResumo();
+  const topPromotores = promotores.filter((p) => p.ativo).slice(0, 5);
 
   const atrasadas = tarefas.filter((t) => t.atrasada);
   const limite = Date.now() + 2 * 86_400_000;
@@ -308,6 +310,42 @@ function Dashboard() {
                   <WhatsAppButton href={whatsappLink(a.whatsapp)} />
                 </li>
               ))}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel
+          title="Promotores"
+          action={
+            <Link to="/promotores" className="text-xs font-semibold text-brand hover:underline">
+              Ver todos
+            </Link>
+          }
+        >
+          {topPromotores.length === 0 ? (
+            <EmptyState icon="📣" message="Nenhum promotor ativo. Cadastre em Promotores." />
+          ) : (
+            <ul className="space-y-3">
+              {topPromotores.map((p) => {
+                const pct = Math.min(100, Number(p.pct_meta ?? 0));
+                const metaOk = p.meta_indicacoes > 0 && pct >= 100;
+                return (
+                  <li key={p.id}>
+                    <div className="mb-1 flex items-center justify-between gap-2 text-sm">
+                      <span className="truncate font-medium text-foreground">{p.nome}</span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {p.indicacoes ?? 0}
+                        {p.meta_indicacoes > 0 ? `/${p.meta_indicacoes}` : ""} ·{" "}
+                        <span className="font-semibold text-success">{formatMoney(p.receita_gerada ?? 0)}</span>
+                      </span>
+                    </div>
+                    <Barra pct={p.meta_indicacoes > 0 ? pct : 0} dim={!metaOk && pct === 0} />
+                    {p.dias_restantes != null && p.dias_restantes >= 0 && p.dias_restantes <= 15 && !metaOk ? (
+                      <p className="mt-1 text-[11px] text-danger">Prazo termina em {p.dias_restantes} dia(s)</p>
+                    ) : null}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </Panel>

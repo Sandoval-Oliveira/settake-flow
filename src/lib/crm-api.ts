@@ -14,6 +14,8 @@ import type {
   PipelineLead,
   PipelineNutricao,
   PipelineVenda,
+  Promotor,
+  PromotorResumo,
   Servico,
   Tarefa,
   TarefaPendente,
@@ -230,6 +232,29 @@ export function useInteracoes(filter: {
   });
 }
 
+export function usePromotores(somenteAtivos = false) {
+  return useQuery({
+    queryKey: ["promotores", somenteAtivos ? "ativos" : "todos"],
+    enabled,
+    queryFn: () =>
+      select<Promotor>("crm_promotores", (q) => {
+        const base = somenteAtivos ? q.eq("ativo", true) : q;
+        return base.order("nome", { ascending: true });
+      }),
+  });
+}
+
+export function usePromotoresResumo() {
+  return useQuery({
+    queryKey: ["promotores_resumo"],
+    enabled,
+    queryFn: () =>
+      select<PromotorResumo>("crm_promotores_resumo", (q) =>
+        q.order("receita_gerada", { ascending: false, nullsFirst: false }),
+      ),
+  });
+}
+
 /* -------------------------------- mutations ------------------------------- */
 
 const PIPELINE_KEYS = [
@@ -244,6 +269,8 @@ const PIPELINE_KEYS = [
   ["valor_pipeline"],
   ["metricas"],
   ["aniversariantes"],
+  ["promotores"],
+  ["promotores_resumo"],
 ];
 
 export function useInvalidateCrm() {
