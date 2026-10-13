@@ -8,10 +8,9 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppSidebar } from "@/components/crm/AppSidebar";
 import { AuthGate, isRotaPublica } from "@/components/crm/AuthGate";
 import { AuthProvider } from "@/lib/auth";
@@ -43,9 +42,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -112,36 +108,27 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const publica = isRotaPublica(pathname);
+  const routerState = useRouterState();
+  const pathname = routerState.location.pathname;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
+    <AuthProvider>
+      {isRotaPublica(pathname) ? (
+        <>
+          <Outlet />
+          <Toaster />
+        </>
+      ) : (
         <AuthGate>
-          {publica ? (
-            <Outlet />
-          ) : (
-            <div className="min-h-screen bg-background">
-              <AppSidebar />
-              <main className="crm-main">
-                {!isSupabaseConfigured ? (
-                  <div className="border-b border-warning/30 bg-warning/10 px-6 py-2.5 text-xs text-warning">
-                    Banco de dados não conectado. Conecte o projeto Supabase do ERP em Configurações →
-                    Integrações para carregar os dados.
-                  </div>
-                ) : null}
-                <div className="px-6 py-6">
-                  {/* Required: nested routes render here. */}
-                  <Outlet />
-                </div>
-              </main>
-            </div>
-          )}
+          <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
+            <AppSidebar />
+            <main className="flex-1 overflow-y-auto">
+              <Outlet />
+            </main>
+          </div>
+          <Toaster />
         </AuthGate>
-      </AuthProvider>
-      <Toaster position="top-right" richColors />
-    </QueryClientProvider>
+      )}
+    </AuthProvider>
   );
 }
